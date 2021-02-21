@@ -60,7 +60,7 @@ def send_text(numbers, texts):
     # Find these values at https://twilio.com/user/account
     # To set up environmental variables, see http://twil.io/secure
     account_sid = "AC3814bc45f99ac5af25d5f45c61cdf33d"
-    auth_token = "2de3933b90cfbd7d2f1910061c75269c"
+    auth_token = "48aa909cfe1dde44c42a88d30f83d10e"
 
     client = Client(account_sid, auth_token)
 

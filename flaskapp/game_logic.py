@@ -165,12 +165,11 @@ def start_game(game_data):
     >>> start_game({'numbers': ['#1', '#2', '#3']})
     asd
     """
-    game_data['roles'] = functions.setupGameState(len(game_data['numbers']))
     game_data["total_choices"] = {}
 
     n = len(game_data['numbers'])
-    game_data['roles'] += functions.setupGameState(n)
-    game_data['names'] += functions.nameGenerator(n)
+    game_data['roles'] = functions.setupGameState(n)
+    game_data['names'] = functions.nameGenerator(n)
     functions.send_text(game_data['numbers'],
                         [
                             "If you would like to take the lie detector test then HQ will analyze the results and send them " +
