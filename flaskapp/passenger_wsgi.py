@@ -1,7 +1,9 @@
 import os
 
-from flask import Flask, request, render_template, redirect, url_for
+from flask import Flask, request
 from twilio.twiml.messaging_response import MessagingResponse
+
+from flaskapp import game_logic
 
 project_root = os.path.dirname(os.path.realpath('__file__'))
 template_path = os.path.join(project_root, 'app/templates')
@@ -26,6 +28,7 @@ def index():
     return 'Hello from flask'
 
 
+
 @app.route("/sms", methods=['GET', 'POST'])
 def incoming_sms():
     """Send a dynamic reply to an incoming text message"""
@@ -34,6 +37,7 @@ def incoming_sms():
     body = request.values.get('Body', None)
     # Get the number the request was sent from
     from_number = request.form['From']
+
     if body == "start new game":
         game_logic.end_game()
         game_logic.start_game(from_number)
@@ -43,8 +47,7 @@ def incoming_sms():
 
     # Determine the right reply for this message
     if body.lower() == 'hello':
-        i += 1
-        resp.message(str(i))
+        resp.message()
     elif body.lower() == 'bye':
         resp.message("Goodbye")
 
