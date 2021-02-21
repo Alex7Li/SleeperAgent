@@ -76,9 +76,9 @@ def determine_response(data, from_number, body):
             return "Please text 'press' or 'don't press' to play"
     if phase == 1 and body == 'next phase':
         functions.espionage(game_data['names'], game_data['roles'])
+
         phase += 1
         return None
-
 
     if phase == 4:
         if game_data["first_time_4"]:
@@ -88,8 +88,27 @@ def determine_response(data, from_number, body):
         role = roles[game_data["numbers"].index(from_number)]
         choice = body # expects a name
         functions.excecution(role,choice,game_data["total_choices"],game_data["names"],game_data["roles"])
-
-
+        
+    # phase 3: mission
+    if phase == 2 and from_number == game_data['numbers'][0]:
+        # get the mission list
+        mission_list = body
+        mission_list = mission_list.replace(",","")
+        mission_list = mission_list.replace(";","")
+        mission_list = mission_list.replace("/","")
+        mission_list = mission_list.split()
+        game_data['mission_list'] = mission_list
+        mission_names = ' '.join([str(elem) for elem in mission_list]) 
+        game_data['phase'] = 2.25
+        return "Is this the mission you'd like: " + mission_names + "? Respond (Y/N)"
+    
+    if phase == 2.25 and from_number == game_data['numbers'][0]: 
+        if "y" in body.lower():
+            functions.emergency_mission(game_data['roles'],game_data['mission_list'], game_data['names'])
+        if "n" in body.lower():
+            game_data['phase'] = 2
+            return "Please try again, send a list of the names you'd like to go on the mission"
+        
     return None
 
 
@@ -120,7 +139,6 @@ def remove_from_game(game_data, from_phone_number):
 
 
 def start_game(game_data):
-<<<<<<< HEAD
     game_data['roles'] = functions.setupGameState(len(game_data['numbers']))
     game_data["total_choices"] = {}
     game_data["first_time_0"] = True
@@ -128,8 +146,6 @@ def start_game(game_data):
     game_data["first_time_2"] = True
     game_data["first_time_3"] = True
     game_data["first_time_4"] = True
-
-=======
     n = len(game_data['numbers'])
     game_data['roles'] += functions.setupGameState(n)
     game_data['names'] += functions.nameGenerator(n)
@@ -137,7 +153,6 @@ def start_game(game_data):
         ["If you would like to take the lie detector test then HQ will analyze the results and send them " +
          "back to those who took the test. But, the results are aggregated among all people who took the test for " +
          "privacy reasons. Text 'Take' or 'Don't Take'."]*n)
->>>>>>> 3e344c59106ef5299b4afffc8f3d10abb59c3b35
 
 def end_game():
     # session.pop('callers', None)
