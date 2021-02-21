@@ -1,5 +1,4 @@
-from flaskapp import functions
-import numpy as np
+import functions
 # import functions
 
 NO_GAME_MESSAGE = "You are not currently playing a game of Sleeper Agent! " \
@@ -84,7 +83,7 @@ def determine_response(data, from_number, body):
 
             if revote:
                 message = "Seems there is a disagreement, try voting again"
-                functions.send_text(game_data["numbers"], np.full(len(game_data["numbers"]), message))
+                functions.send_text(game_data["numbers"], [message for m in range(len(game_data["numbers"]))])
                 results, revote = functions.excecution(role, choice, game_data["total_choices"], game_data["names"],
                                                        game_data["roles"])
             if results != None:
@@ -98,19 +97,19 @@ def determine_response(data, from_number, body):
                     functions.send_text(bad_number, message)
 
                     message = "Congrats Agents, You caught 'em"
-                    functions.send_text(good_numbers, np.full(len(good_numbers), message))
+                    functions.send_text(good_numbers, [message for m in range(len(good_numbers))])
                 else:
                     message = "Congrats Comrad, You know too much"
                     functions.send_text(bad_number, message)
 
                     message = "Agents Nooo, The sleeper has gotten away"
-                    functions.send_text(good_numbers, np.full(len(good_numbers), message))
+                    functions.send_text(good_numbers, [message for m in range(len(good_numbers))])
                 phase += 1
 
             #  TODO        role = roles[game_data["numbers"].index(from_number)]
-            choice = body  # expects a name
-            functions.excecution(role, choice, game_data["total_choices"], game_data["names"], game_data["roles"])
-            functions.send_text(good_numbers,np.full(len(good_numbers),message))
+            # choice = body  # expects a name
+            # functions.excecution(role, choice, game_data["total_choices"], game_data["names"], game_data["roles"])
+            # functions.send_text(good_numbers,np.full(len(good_numbers),message))
 
                     
         
