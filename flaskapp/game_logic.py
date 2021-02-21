@@ -74,7 +74,7 @@ def determine_response(data, from_number, body):
             functions.send_text()
             return "Please type in 'take' or 'don't take'."
     if phase == 1 and body == 'next phase':
-        functions.espionage(game_data['names'], game_data['numbers'])
+        functions.espionage(game_data['numbers'], game_data['roles'])
         game_data['phase'] = 2
         return None
 
