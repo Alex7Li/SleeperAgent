@@ -1,4 +1,4 @@
-from flaskapp import functions
+import functions
 # import functions
 import random
 NO_GAME_MESSAGE = "You are not currently playing a game of Sleeper Agent! " \
