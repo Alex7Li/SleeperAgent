@@ -10,6 +10,10 @@ from twilio.twiml.messaging_response import MessagingResponse
 
 
 def espionage(roles, numbers):
+    """
+    >>> espionage([0, 1], ['a', 'b'])
+
+    """
     texts = []
     n = len(roles)
     right = random.randint(0, 1)

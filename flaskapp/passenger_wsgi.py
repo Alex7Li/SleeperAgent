@@ -46,7 +46,7 @@ def incoming_sms():
         resp = MessagingResponse()
         resp.message(response)
         return str(resp)
-
+    return "Tbd"
 
 
 application = app
