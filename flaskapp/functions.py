@@ -90,22 +90,21 @@ def send_text(numbers, texts):
 # names = all names in game
 # name = name of person submitted
 # choice = choice of person submitted
-<<<<<<< HEAD
 # roles = all roles in game
-def button(button_presses,names,name,choice,roles):
-    button_presses[name]=choice
+def button(button_presses,numbers,number,choice,roles):
+    button_presses[number]=choice
 
     # checks if everyone has submitted
-    if len(button_presses)==len(names):
+    if len(button_presses)==len(numbers):
         bad = roles.index(1)
         said_yes = [i for i in button_presses if button_presses[i].lower().replace("'","")=="press"]
 
         # sends text based on everyone's choices and if bad is in pressed
         for n in button_presses:
-            if button_presses[n].lower().replace("'","")=="press" and names[bad] in said_yes:
+            if button_presses[n].lower().replace("'","")=="press" and numbers[bad] in said_yes:
                 send_text(n,"There is a traitor amongst you")
                 send_text(n,"When you're ready to move on, tell the leader to send next phase")
-            elif button_presses[n].lower().replace("'","")=="press" and names[bad] not in said_yes:
+            elif button_presses[n].lower().replace("'","")=="press" and numbers[bad] not in said_yes:
                 send_text(n,"All clear Agent, no one was corrupt")
                 send_text(n,"When you're ready to move on, tell the leader to send next phase")
             elif button_presses[n].lower().replace("'","")=="dont press":
@@ -113,19 +112,6 @@ def button(button_presses,names,name,choice,roles):
                 send_text(n,"When you're ready to move on, tell the leader to send next phase")
 
 
-
-=======
-def button(button_presses, names, name, choice):
-    button_presses[name] = choice
-
-    # checks if everyone has submitted
-    if len(button_presses) == len(names):
-        done = True
-    else:
-        done = False
-
-    return button_presses, done
->>>>>>> d26cbcce33ee3d96d4f2063719dc163a09ff4b70
 
 
 # returns how many people should be on the emergency mission
