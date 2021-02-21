@@ -34,6 +34,8 @@ def determine_response(data, from_number, body):
     "You are already enlisted in mission id1. Wait for the person who started the mission to text 'Start mission' or exit by texting 'Abort'"
     >>> determine_response({'id1':{ 'numbers': ['#1', '#2']}}, '#1', 'begin enlisting')
     "You are already enlisted in mission id1. Wait for the person who started the mission to text 'Start mission' or exit by texting 'Abort'"
+    >>> determine_response({}, '#1', 'begin enlisting')
+    "You are already enlisted in mission id1. Wait for the person who started the mission to text 'Start mission' or exit by texting 'Abort'"
     """
     game_id = get_game_id(data, from_number)
     if game_id is None:
@@ -41,7 +43,7 @@ def determine_response(data, from_number, body):
         # Not currently in a game
         if body == "begin enlisting":
             game_id = str(random.randint(0, 10000000))
-            data[game_id]['numbers'] = [from_number]
+            data[game_id] = {'numbers': [from_number]}
             return "Started mission " + game_id + ". Tell others to join by texting 'enlist me " \
                    + game_id + "' to this number without quotes. Start the mission by texting 'Begin enlisting'"
         elif ' '.join(body.split(" ")[:2]) == "enlist me":
