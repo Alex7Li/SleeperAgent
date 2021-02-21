@@ -1,15 +1,17 @@
-def get_game_id(data, texter):
+def get_game_id(data, texter_number):
     """
-    >>> get_game_id({
-    'id1':{
-         numbers: [#10010010001, #10010010001],
-         names: {"Agent India", "Agent Bravo"}},
-     game_2_id: {
-         numbers: [#10010010001, #10010010001],
-         names: {"Agent India", "Agent Bravo"}
-    })
+    >>> get_game_id({'id1':{ 'numbers': ['#1', '#2']},'id2': { 'numbers': ["#3", "#4"]}}, '#1')
+    'id1'
+    >>> get_game_id({'id1':{ 'numbers': ['#1', '#2']},'id2': { 'numbers': ["#3", "#4"]}}, '#4')
+    'id2'
+    >>> get_game_id({'id1':{ 'numbers': ['#1', '#2']},'id2': { 'numbers': ["#3", "#4"]}}, '#5')
+    False
     """
-    pass
+    for game_id in data:
+        for phone_number in data[game_id]['numbers']:
+            if phone_number == texter_number:
+                return game_id
+    return False
 
 
 def start_game(from_number):

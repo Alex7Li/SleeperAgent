@@ -4,6 +4,7 @@ from flask import Flask, request
 from twilio.twiml.messaging_response import MessagingResponse
 
 from flaskapp import game_logic
+from flaskapp.game_logic import get_game_id
 
 project_root = os.path.dirname(os.path.realpath('__file__'))
 template_path = os.path.join(project_root, 'app/templates')
@@ -14,10 +15,10 @@ app = Flask(__name__, template_folder=template_path,
 data = {
     # Example data:
     # game_1_id: {
-    #     numbers: [#10010010001, #10010010001],
+    #     numbers: ["#10010010001", "#10010010001"],
     #     names: {"Agent India", "Agent Bravo"}},
     # game_2_id: {
-    #     numbers: [#10010010001, #10010010001],
+    #     numbers: ["#10010010001", "#10010010001"],
     #     names: {"Agent India", "Agent Bravo"}
     # },
 }
@@ -37,6 +38,7 @@ def incoming_sms():
     body = request.values.get('Body', None)
     # Get the number the request was sent from
     from_number = request.form['From']
+    game_data = get_game_id(data, from_number)
 
     if body == "start new game":
         game_logic.end_game()
