@@ -35,7 +35,7 @@ def determine_response(data, from_number, body):
         print(data)
         # Not currently in a game
         if body == "begin enlisting":
-            game_id = str(random.randint(0, 10000000))
+            game_id = str(random.randint(0, 100000))
             data[game_id] = {'numbers': [from_number]}
             return "Began Enlisting for " + game_id + ". Tell others to join by texting 'enlist me " \
                    + game_id + "' to this number without quotes. Start the mission by texting 'Start Mission'"
@@ -170,6 +170,7 @@ def start_game(game_data):
     n = len(game_data['numbers'])
     game_data['roles'] = functions.setupGameState(n)
     game_data['names'] = functions.nameGenerator(n)
+    game_data['phase'] = 1
     functions.send_text(game_data['numbers'],
                         [
                             "If you would like to take the lie detector test then HQ will analyze the results and send them " +
