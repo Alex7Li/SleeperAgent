@@ -37,6 +37,8 @@ def determine_response(data, from_number, body):
     """
     game_id = get_game_id(data, from_number)
     if game_id is None:
+        print(data)
+        print(game_data)
         # Not currently in a game
         if body == "begin enlisting":
             game_id = random.randint(0, 10000000)
