@@ -7,13 +7,12 @@ from twilio.twiml.messaging_response import MessagingResponse
 
 
 # checks to the left or right
-# names = all names in game
 # roles = all roles in game
-def espionage(names, roles):
+def espionage(roles):
     texts = []
     n = len(roles)
     right = np.random.randint(0, 2)
-    for c in range(len(names)):
+    for c in range(len(roles)):
         if right:
             if roles[(c + 1) % n]:
                 texts.append("CODE RED: Espionage Detected")
@@ -26,7 +25,7 @@ def espionage(names, roles):
             else:
                 texts.append("ALL CLEAR: Espionage NOT Detected")
 
-    return names, texts
+    return texts
 
 
 # set up the game with roles and phone numbers, input number of people
@@ -34,7 +33,7 @@ def espionage(names, roles):
 def setupGameState(n):
     # 0 = good, 1 = bad
     roles = np.zeros(n)
-    roles[random.randint(0, n - 1)] = 1
+    roles[np.random.randint(0, n)] = 1
     return roles
 
 
@@ -45,7 +44,7 @@ def nameGenerator(num_names):
                   'Foxtrot', 'Golf', 'Hotel', 'India', 'Juliet',
                   'Kilo', 'Lima', 'Mike', 'November', 'Oscar', 'Papa',
                   'Quebec', 'Romeo', 'Sierra', 'Tango', 'Uniform',
-                  'Victor', 'Whiskey', 'X-ray', 'Yankee', 'Zulu']
+                  'Victor', 'Whiskey', 'Yankee', 'Zulu']
 
     return_names = []
     for i in range(num_names):
@@ -54,18 +53,6 @@ def nameGenerator(num_names):
         list_names.remove(name)
 
     return return_names
-
-
-# # enlists users for new game
-# def collect_users_start(numbers):
-#     from_number = request.values.get('From', None)
-#     if body.lower()=="enlist me":
-#         numbers.append(from_number)
-#     else:
-#         resp = MessagingResponse()
-#         resp.message('Permission Denied, text "Enlist Me" to continue')
-
-#     return numbers
 
 
 # send any text to n number of numbers
@@ -149,7 +136,7 @@ def excecution(role, choice, name, total_choices, names, roles):
             total_choices[n] = []
         total_choices[choice] = [name]
 
-    # if all names are in it calcluates the result
+    # if all names are in it calculates the result
     summer = 0
     for s in total_choices:
         summer += len(total_choices[s])
@@ -167,7 +154,6 @@ def excecution(role, choice, name, total_choices, names, roles):
             # if x num chose bad, good win
             elif len(total_choices[names[bad]]) >= (np.ceil(len(names) / 2) - 1):
                 result = True
-
             else:
                 revote = True
 

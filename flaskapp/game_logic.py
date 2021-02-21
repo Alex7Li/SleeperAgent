@@ -118,5 +118,5 @@ def start_game(game_data):
          "privacy reasons. Text 'Take' or 'Don't Take'."]*n)
 
 def end_game():
-    # session.pop('callers', None)
+
     pass
