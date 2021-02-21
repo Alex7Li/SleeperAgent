@@ -1,3 +1,5 @@
+from flaskapp import functions
+
 NO_GAME_MESSAGE = "You are not currently playing a game of Sleeper Agent! " \
                   "Text \"Begin enlisting\" without quotes to start"
 IN_MISSION = "Wait for the person who started the mission to text 'Start mission' or exit by texting 'Abort'"

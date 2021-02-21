@@ -5,7 +5,9 @@ import random
 from flask import Flask, request
 from twilio.twiml.messaging_response import MessagingResponse
 
-# checks to the left and right and ra
+# checks to the left or right
+# names = all names in game
+# roles = all roles in game
 def espionage(names,roles):
     roles.append(roles[0])
     
@@ -27,6 +29,7 @@ def espionage(names,roles):
     return names,texts
 
 # set up the game with roles and phone numbers, input number of people
+# n = number of players
 def SetupGameState(n):
 
     # 0 = good, 1 = bad
@@ -35,6 +38,7 @@ def SetupGameState(n):
     return roles
 
 # creates names from how many are needed
+# num_names = num of players
 def NameGenerator(num_names):
     list_names = ['Alpha','Bravo','Charlie','Delta','Echo',
                   'Foxtrot','Golf','Hotel','India','Juliet',
@@ -50,16 +54,16 @@ def NameGenerator(num_names):
             
     return return_names
 
-# enlists users for new game
-def collect_users_start(numbers):
-    from_number = request.values.get('From', None)
-    if body.lower()=="enlist me":
-        numbers.append(from_number)
-    else:
-        resp = MessagingResponse()
-        resp.message('Permission Denied, text "Enlist Me" to continue')
+# # enlists users for new game
+# def collect_users_start(numbers):
+#     from_number = request.values.get('From', None)
+#     if body.lower()=="enlist me":
+#         numbers.append(from_number)
+#     else:
+#         resp = MessagingResponse()
+#         resp.message('Permission Denied, text "Enlist Me" to continue')
         
-    return numbers
+#     return numbers
 
 
 # send any text to n number of numbers
@@ -80,6 +84,10 @@ def send_text(numbers,text):
 
 
 # adds persons choice to press button, checks if everyone has entered
+# button_presses = everyone presses so far, global var
+# names = all names in game
+# name = name of person submitted
+# choice = choice of person submitted
 def button(button_presses,names,name,choice):
     button_presses[name]=choice
 
@@ -93,11 +101,15 @@ def button(button_presses,names,name,choice):
 
 
 # returns how many people should be on the emergency mission
+# names = all names in game
 def get_emergency_mission_number(names):
     return np.ceil(len(names)/2)
 
 # determines if bad person is on emergency mission
-def emergency_mission(roles,mission_names,names,number_in_mission):
+# roles = all roles in game
+# mission_names = all people going on mission
+# names = all names in game
+def emergency_mission(roles,mission_names,names):
     mission_roles = [r for r,n in zip(roles,names) if n in mission_names]
 
     if sum(mission_roles)>0:
@@ -109,11 +121,19 @@ def emergency_mission(roles,mission_names,names,number_in_mission):
 
 
 # last step, choose someone
-def excecution(role,choice,total_choices,names,roles):
+# role = role of person who submitted
+# choice = their choice
+# name = their name
+# total_choices = global var of everyone choices
+# all names in game
+# all roles in game
+def excecution(role,choice,name,total_choices,names,roles):
     try:
-        total_choices[name].append(choice)
+        total_choices[choice].append(name)
     except:
-        total_choices[name] = [choice]
+        for n in names:
+            total_choices[n]=[]
+        total_choices[choice] = [name]
 
     # if all names are in it calcluates the result
     summer = 0
@@ -121,14 +141,22 @@ def excecution(role,choice,total_choices,names,roles):
         summer+=len(total_choices[s])
 
     result = None
+    revote = False
     if summer==len(names):
-        bad = roles.index(1)
-        # if bad chose themselves they win
-        if names[bad] in total_choices[bad]:
-            result = False
+        for n in names:
+            bad = roles.index(1)
+            # if bad chose themselves they win
+            if names[bad] in total_choices[names[bad]]:
+                result = False
+                break
 
-        # if x num chose bad, good win
-        elif len([names[bad]])>=(np.ceil(len(names)/2)-1):
-            result=True
+            # if x num chose bad, good win
+            elif len(total_choices[names[bad]])>=(np.ceil(len(names)/2)-1):
+                result=True
 
-    return total_choices,result
+            else:
+                revote = True
+            
+        
+
+    return total_choices,result,revote
