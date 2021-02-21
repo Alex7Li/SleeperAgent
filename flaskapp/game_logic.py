@@ -1,5 +1,6 @@
 from flaskapp import functions
 import numpy as np
+# import functions
 
 NO_GAME_MESSAGE = "You are not currently playing a game of Sleeper Agent! " \
                   "Text \"Begin enlisting\" without quotes to start"
@@ -68,11 +69,11 @@ def determine_response(data, from_number, body):
         phase += 1
         return None
     player_id = game_data["numbers"].index(from_number)
-    if phase == 4:
+    if phase == 3:
         revote = False
         if game_data["first_time_4"]:
             message = "Now beginning the excecution, submit your vote by Agent Name"
-            functions.send_text(game_data["numbers"], np.full(len(game_data["numbers"]), message))
+            functions.send_text(game_data["numbers"], [message] * len(game_data["numbers"]))
             game_data["first_time_4"] = False
             revote = True
         while revote:
@@ -80,6 +81,7 @@ def determine_response(data, from_number, body):
             choice = body  # expects a name
             results, revote = functions.excecution(role, choice, game_data["total_choices"], game_data["names"],
                                                    game_data["roles"])
+
             if revote:
                 message = "Seems there is a disagreement, try voting again"
                 functions.send_text(game_data["numbers"], np.full(len(game_data["numbers"]), message))
@@ -105,10 +107,13 @@ def determine_response(data, from_number, body):
                     functions.send_text(good_numbers, np.full(len(good_numbers), message))
                 phase += 1
 
-#TODO        role = roles[game_data["numbers"].index(from_number)]
-        choice = body  # expects a name
-        functions.excecution(role, choice, game_data["total_choices"], game_data["names"], game_data["roles"])
+            #  TODO        role = roles[game_data["numbers"].index(from_number)]
+            choice = body  # expects a name
+            functions.excecution(role, choice, game_data["total_choices"], game_data["names"], game_data["roles"])
+            functions.send_text(good_numbers,np.full(len(good_numbers),message))
 
+                    
+        
     # phase 3: mission
     if phase == 2 and from_number == game_data['numbers'][0]:
         # get the mission list

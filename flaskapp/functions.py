@@ -8,7 +8,7 @@ from twilio.twiml.messaging_response import MessagingResponse
 
 # checks to the left or right
 # roles = all roles in game
-def espionage(roles, numbers):
+def espionage(roles):
     texts = []
     n = len(roles)
     right = np.random.randint(0, 2)
