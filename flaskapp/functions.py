@@ -32,7 +32,7 @@ def espionage(names, roles):
 
 # set up the game with roles and phone numbers, input number of people
 # n = number of players
-def SetupGameState(n):
+def setupGameState(n):
     # 0 = good, 1 = bad
     roles = np.zeros(n)
     roles[random.randint(0, n - 1)] = 1
@@ -70,7 +70,7 @@ def NameGenerator(num_names):
 
 
 # send any text to n number of numbers
-def send_text(numbers, text):
+def send_text(numbers, texts):
     # Find these values at https://twilio.com/user/account
     # To set up environmental variables, see http://twil.io/secure
     account_sid = "AC3814bc45f99ac5af25d5f45c61cdf33d"

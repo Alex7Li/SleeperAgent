@@ -17,9 +17,12 @@ data = {
     # game_1_id: {
     #     'numbers': ["#10010010001", "#10010010001"],
     #     'names': ["Agent India", "Agent Bravo"]},
+    #     'roles': [0, 1, 0],
+    #     'current_phase: 0->setup, 1->doing button, 2->doing espionage, 3->doing mission, 4->doing execution
     # game_2_id: {
     #     'numbers': ["#10010010001", "#10010010001"],
     #     'names': ["Agent India", "Agent Bravo"]
+    #     'current_phase: 2'
     # },
 }
 
