@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 from flaskapp import functions
+=======
+import functions
+>>>>>>> bd6669f7e44f4c6b8b032b5fe139d5f15a320a7e
 # import functions
 import random
 NO_GAME_MESSAGE = "You are not currently playing a game of Sleeper Agent! " \
@@ -16,6 +20,7 @@ def get_game_id(data, texter_number):
     None
     """
     for game_id in data:
+        print(data)
         for phone_number in data[game_id]['numbers']:
             if phone_number == texter_number:
                 return game_id
@@ -94,13 +99,13 @@ def determine_response(data, from_number, body):
                     functions.send_text(bad_number, message)
 
                     message = "Congrats Agents, You caught 'em"
-                    functions.send_text(good_numbers, len(good_numbers) * [message])
+                    functions.send_text(good_numbers, [message for m in range(len(good_numbers))])
                 else:
                     message = "Congrats Comrad, You know too much"
                     functions.send_text(bad_number, message)
 
                     message = "Agents Nooo, The sleeper has gotten away"
-                    functions.send_text(good_numbers, len(good_numbers) * [message])
+                    functions.send_text(good_numbers, [message for m in range(len(good_numbers))])
                 phase += 1
                 results, revote = functions.excecution(role, choice, game_data["total_choices"], game_data["names"],
                                                    game_data["roles"])
@@ -109,7 +114,6 @@ def determine_response(data, from_number, body):
                 choice = body  # expects a name
                 functions.excecution(role, choice, game_data["total_choices"], game_data["names"], game_data["roles"])
                 functions.send_text(good_numbers, [message] * len(good_numbers))
-
 
         
     # phase 3: mission
@@ -121,12 +125,17 @@ def determine_response(data, from_number, body):
         mission_list = mission_list.replace("/", "")
         mission_list = mission_list.split()
         game_data['mission_list'] = mission_list
+        #TODO be more flexible with inputs
+        mission_names = ' '.join([str(elem) for elem in mission_list]) 
         mission_names = ' '.join([str(elem) for elem in mission_list])
+
         game_data['phase'] = 2.25
         return "Is this the mission you'd like: " + mission_names + "? Respond (Y/N)"
 
     if phase == 2.25 and from_number == game_data['numbers'][0]:
         if "y" in body.lower():
+            functions.emergency_mission(game_data['roles'],game_data['mission_list'], game_data['names'])
+            game_data['phase'] = 3
             functions.emergency_mission(game_data['roles'], game_data['mission_list'], game_data['names'])
         if "n" in body.lower():
             game_data['phase'] = 2

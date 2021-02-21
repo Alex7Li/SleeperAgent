@@ -8,7 +8,10 @@ from twilio.twiml.messaging_response import MessagingResponse
 
 # checks to the left or right
 # roles = all roles in game
+
+
 def espionage(roles, numbers):
+
     texts = []
     n = len(roles)
     right = random.randint(0, 1)
@@ -79,7 +82,7 @@ def send_text(numbers, texts):
 def button(button_presses, numbers, number, choice, roles):
     button_presses[number] = choice
 
-    # checks if everyone has submitted
+
     if len(button_presses) != len(numbers):
         return False
     bad = roles.index(1)
@@ -100,6 +103,7 @@ def button(button_presses, numbers, number, choice, roles):
     return True
 
 
+
 # returns how many people should be on the emergency mission
 # names = all names in game
 # def get_emergency_mission_number(names):
@@ -111,12 +115,27 @@ def button(button_presses, numbers, number, choice, roles):
 # mission_names = all people going on mission
 # names = all names in game
 def emergency_mission(roles, mission_names, names):
-    mission_roles = [r for r, n in zip(roles, names) if n in mission_names]
-
-    if sum(mission_roles) > 0:
-        if_bad_on_mission = True
-    else:
-        if_bad_on_mission = False
+    # TODO ask alex about a 'set'
+    
+    # get the indices of the given names in the set
+    agentIDs = []
+    for i in range(len(mission_list)):
+        for j in range(len(names)):
+            shortName = names[j].lower().replace("agent ","")
+        if mission_list[i] == shortName:
+            agentIDs.append(j)
+    
+    if_bad_on_mission = False
+    
+    for i in range(len(agentIDs)):
+        if roles[agentIDs[i]] == 1:
+            if_bad_on_mission = True
+            
+    for i in agentIDs:
+        if is_bad_on_mission:
+            send_text(game_data['numbers'][i],"There was a sleeper agent on this mission")
+        else:
+            send_text(game_data['numbers'][i],"There was no sleeper agent on this mission")
 
     return if_bad_on_mission
 
