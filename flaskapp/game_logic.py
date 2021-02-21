@@ -129,11 +129,13 @@ def determine_response(data, from_number, body):
         game_data['mission_list'] = mission_list
         # TODO be more flexible with inputs
         mission_names = ' '.join([str(elem) for elem in mission_list])
-
+        functions.send_text(game_data["numbers"],["Possible Agents:" for i in range(len(game_data["numbers"]))])
+        functions.send_text(game_data["numbers"],[game_data["names"] for i in range(len(game_data["numbers"]))])
         game_data['phase'] = 2.25
         return "Is this the mission you'd like: " + mission_names + "? Respond (Y/N)"
 
     if phase == 2.25 and from_number == game_data['numbers'][0]:
+        functions.send_text(game_data["numbers"],[game_data["names"] for i in range(len(game_data["numbers"]))])
         if "y" in body.lower():
             functions.emergency_mission(game_data['roles'], game_data['mission_list'], game_data['names'])
             game_data['phase'] = 3
