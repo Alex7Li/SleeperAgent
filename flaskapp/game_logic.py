@@ -64,6 +64,17 @@ def determine_response(data, from_number, body):
     if phase == 1 and body == 'next phase':
         functions.espionage(game_data['names'], game_data['roles'])
 
+
+    if phase == 4:
+        if game_data["first_time_4"]:
+            message = "Now begining the excecution, submit your vote by Agent Name"
+            functions.send_text(game_data["numbers"],np.full(len(game_data["numbers"]),message))
+            game_data["first_time_4"]= False
+        role = roles[game_data["numbers"].index(from_number)]
+        choice = body # expects a name
+        functions.excecution(role,choice,game_data["total_choices"],game_data["names"],game_data["roles"])
+
+
     return None
 
 
@@ -96,6 +107,12 @@ def remove_from_game(game_data, from_phone_number):
 
 def start_game(game_data):
     game_data['roles'] = functions.setupGameState(len(game_data['numbers']))
+    game_data["total_choices"] = {}
+    game_data["first_time_0"] = True
+    game_data["first_time_1"] = True
+    game_data["first_time_2"] = True
+    game_data["first_time_3"] = True
+    game_data["first_time_4"] = True
 
 
 def end_game():

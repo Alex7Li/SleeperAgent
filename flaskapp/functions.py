@@ -9,12 +9,12 @@ from twilio.twiml.messaging_response import MessagingResponse
 # checks to the left or right
 # names = all names in game
 # roles = all roles in game
-def espionage(names, roles):
+def espionage(roles):
 
     texts = []
     n = len(roles)
     right = np.random.randint(0, 2)
-    for c in range(len(names)):
+    for c in range(len(roles)):
         if right:
             if roles[(c+1) % n]:
                 texts.append("CODE RED: Espionage Detected")
@@ -27,7 +27,7 @@ def espionage(names, roles):
             else:
                 texts.append("ALL CLEAR: Espionage NOT Detected")
 
-    return names, texts
+    send_text(game_data["numbers"],texts)
 
 
 # set up the game with roles and phone numbers, input number of people
@@ -97,17 +97,17 @@ def button(button_presses,numbers,number,choice,roles):
     # checks if everyone has submitted
     if len(button_presses)==len(numbers):
         bad = roles.index(1)
-        said_yes = [i for i in button_presses if button_presses[i].lower().replace("'","")=="press"]
+        said_yes = [i for i in button_presses if button_presses[i].lower().replace("'","")=="take"]
 
         # sends text based on everyone's choices and if bad is in pressed
         for n in button_presses:
-            if button_presses[n].lower().replace("'","")=="press" and numbers[bad] in said_yes:
+            if button_presses[n].lower().replace("'","")=="take" and numbers[bad] in said_yes:
                 send_text(n,"There is a traitor amongst you")
                 send_text(n,"When you're ready to move on, tell the leader to send next phase")
-            elif button_presses[n].lower().replace("'","")=="press" and numbers[bad] not in said_yes:
+            elif button_presses[n].lower().replace("'","")=="take" and numbers[bad] not in said_yes:
                 send_text(n,"All clear Agent, no one was corrupt")
                 send_text(n,"When you're ready to move on, tell the leader to send next phase")
-            elif button_presses[n].lower().replace("'","")=="dont press":
+            elif button_presses[n].lower().replace("'","")=="dont take":
                 send_text(n,"You've chosen to sit out")
                 send_text(n,"When you're ready to move on, tell the leader to send next phase")
 
@@ -172,4 +172,5 @@ def excecution(role, choice, name, total_choices, names, roles):
             else:
                 revote = True
 
-    return total_choices, result, revote
+    game_data["total_choices"] = total_choices
+    return result, revote
