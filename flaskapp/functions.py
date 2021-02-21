@@ -121,11 +121,11 @@ def emergency_mission(roles, mission_names, names):
         if mission_names[i] == shortName:
             agentIDs.append(j)
 
-    if_bad_on_mission = False
+    is_bad_on_mission = False
 
     for i in range(len(agentIDs)):
         if roles[agentIDs[i]] == 1:
-            if_bad_on_mission = True
+            is_bad_on_mission = True
 
     for i in agentIDs:
         if is_bad_on_mission:
@@ -133,7 +133,7 @@ def emergency_mission(roles, mission_names, names):
         else:
             send_text(game_data['numbers'][i], "There was no sleeper agent on this mission")
 
-    return if_bad_on_mission
+    return is_bad_on_mission
 
 
 # last step, choose someone
