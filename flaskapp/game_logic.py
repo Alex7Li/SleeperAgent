@@ -66,7 +66,6 @@ def determine_response(data, from_number, body):
         game_data['phase'] = 2
         return None
 
-
     player_id = game_data["numbers"].index(from_number)
     if phase == 3:
         message = "Now beginning the excecution, submit your vote by Agent Name"
@@ -140,7 +139,6 @@ def add_to_game(game_data, from_number):
     Add a player to the game
     """
     game_data['numbers'] += [from_number]
-    # TODO game_data[from_number]['names'] += generate_name()
     pass
 
 
