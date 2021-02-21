@@ -49,15 +49,21 @@ def determine_response(data, from_number, body):
             return "Successfully joined mission " + game_id
         else:
             return NO_GAME_MESSAGE
-    else:
-        # Setting up a game
-        if ' '.join(body.split(" ")[:2]) == "enlist me" or body == 'begin enlisting':
-            return "You are already enlisted in mission " + game_id + ". " + IN_MISSION
-        elif body == 'start mission':
-            start_game(game_id)
-        elif body == 'abort':
-            remove_from_game(game_id, from_number)
-            return "You have left the mission."
+    # Setting up a game
+    if ' '.join(body.split(" ")[:2]) == "enlist me" or body == 'begin enlisting':
+        return "You are already enlisted in mission " + game_id + ". " + IN_MISSION
+    elif body == 'start mission':
+        start_game(game_id)
+    elif body == 'abort':
+        remove_from_game(game_id, from_number)
+        return "You have left the mission."
+
+    game_data = data[game_id]
+    phase = game_data['current_phase']
+
+    if phase == 1 and body == 'next phase':
+        functions.espionage(game_data['names'], game_data['roles'])
+
     return None
 
 
@@ -89,7 +95,7 @@ def remove_from_game(game_data, from_phone_number):
 
 
 def start_game(game_data):
-    pass
+    game_data['roles'] = functions.setupGameState(len(game_data['numbers']))
 
 
 def end_game():
