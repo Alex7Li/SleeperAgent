@@ -66,7 +66,7 @@ def send_text(numbers, texts):
 
     for number, text in zip(numbers, texts):
         message = client.messages.create(
-            to="+1" + number,
+            to=number,
             from_="+17203998395",
             body=text)
 
