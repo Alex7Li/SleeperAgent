@@ -1,4 +1,4 @@
-from flaskapp import functions
+import functions
 # import functions
 import random
 NO_GAME_MESSAGE = "You are not currently playing a game of Sleeper Agent! " \
@@ -37,15 +37,17 @@ def determine_response(data, from_number, body):
     """
     game_id = get_game_id(data, from_number)
     if game_id is None:
+        print(data)
         # Not currently in a game
         if body == "begin enlisting":
             game_id = random.randint(0, 10000000)
-            add_to_game(game_id, from_number)
+            data[game_id]['numbers'] = [from_number]
             return "Started mission " + game_id + ". Tell others to join by texting 'enlist me " \
                    + game_id + "' to this number without quotes. Start the mission by texting 'Begin enlisting'"
         elif ' '.join(body.split(" ")[:2]) == "enlist me":
             game_id = ''.join(body.split(" ")[2:])
             add_to_game(data[game_id], from_number)
+            print(data)
             return "Successfully joined mission " + game_id
         else:
             return NO_GAME_MESSAGE
