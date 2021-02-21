@@ -10,19 +10,19 @@ from twilio.twiml.messaging_response import MessagingResponse
 # names = all names in game
 # roles = all roles in game
 def espionage(names, roles):
-    roles.append(roles[0])
 
     texts = []
+    n = len(roles)
     right = np.random.randint(0, 2)
     for c in range(len(names)):
         if right:
-            if roles[c + 1]:
+            if roles[(c+1) % n]:
                 texts.append("CODE RED: Espionage Detected")
             else:
                 texts.append("ALL CLEAR: Espionage NOT Detected")
 
         else:
-            if roles[c - 1]:
+            if roles[(c-1) % n]:
                 texts.append("CODE RED: Espionage Detected")
             else:
                 texts.append("ALL CLEAR: Espionage NOT Detected")
