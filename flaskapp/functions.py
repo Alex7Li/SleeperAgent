@@ -1,4 +1,3 @@
-
 import os
 from twilio.rest import Client
 import random
@@ -11,7 +10,6 @@ from twilio.twiml.messaging_response import MessagingResponse
 
 
 def espionage(roles, numbers):
-
     texts = []
     n = len(roles)
     right = random.randint(0, 1)
@@ -82,7 +80,6 @@ def send_text(numbers, texts):
 def button(button_presses, numbers, number, choice, roles):
     button_presses[number] = choice
 
-
     if len(button_presses) != len(numbers):
         return False
     bad = roles.index(1)
@@ -103,7 +100,6 @@ def button(button_presses, numbers, number, choice, roles):
     return True
 
 
-
 # returns how many people should be on the emergency mission
 # names = all names in game
 # def get_emergency_mission_number(names):
@@ -116,26 +112,26 @@ def button(button_presses, numbers, number, choice, roles):
 # names = all names in game
 def emergency_mission(roles, mission_names, names):
     # TODO ask alex about a 'set'
-    
+
     # get the indices of the given names in the set
     agentIDs = []
     for i in range(len(mission_list)):
         for j in range(len(names)):
-            shortName = names[j].lower().replace("agent ","")
+            shortName = names[j].lower().replace("agent ", "")
         if mission_list[i] == shortName:
             agentIDs.append(j)
-    
+
     if_bad_on_mission = False
-    
+
     for i in range(len(agentIDs)):
         if roles[agentIDs[i]] == 1:
             if_bad_on_mission = True
-            
+
     for i in agentIDs:
         if is_bad_on_mission:
-            send_text(game_data['numbers'][i],"There was a sleeper agent on this mission")
+            send_text(game_data['numbers'][i], "There was a sleeper agent on this mission")
         else:
-            send_text(game_data['numbers'][i],"There was no sleeper agent on this mission")
+            send_text(game_data['numbers'][i], "There was no sleeper agent on this mission")
 
     return if_bad_on_mission
 
@@ -169,12 +165,12 @@ def excecution(choice, name, total_choices, names, roles):
 
 def determine_execution(total_choices, names, roles):
     """
-    >>> total_choices({'a1':['a2','a3'], 'a2':['a1'], 'a3':[]}, ['a1', 'a2', 'a3'], [1, 0, 0])
-    True, False
-    >>> total_choices({'a1':['a1','a3'], 'a2':['a2'], 'a3':[]}, ['a1', 'a2', 'a3'], [1, 0, 0])
-    False, False
-    >>> total_choices({'a1':[], 'a2':['a1', 'a2', 'a3']}, ['a1', 'a2', 'a3'], [1, 0, 0])
-    False, True
+    >>> determine_execution({'a1':['a2','a3'], 'a2':['a1'], 'a3':[]}, ['a1', 'a2', 'a3'], [1, 0, 0])
+    (True, False)
+    >>> determine_execution({'a1':['a1','a3'], 'a2':['a2'], 'a3':[]}, ['a1', 'a2', 'a3'], [1, 0, 0])
+    (False, False)
+    >>> determine_execution({'a1':[], 'a2':['a1', 'a2', 'a3']}, ['a1', 'a2', 'a3'], [1, 0, 0])
+    (None, True)
     """
     result = None
     revote = False
@@ -183,7 +179,7 @@ def determine_execution(total_choices, names, roles):
     if names[bad] in total_choices[names[bad]]:
         result = False
     # if x num chose bad, good win
-    elif len(total_choices[names[bad]]) >= (len(names)-1) // 2:
+    elif len(total_choices[names[bad]]) >= (len(names) - 1) // 2:
         result = True
     else:
         revote = True
