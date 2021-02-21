@@ -88,16 +88,29 @@ def send_text(numbers,text):
 # names = all names in game
 # name = name of person submitted
 # choice = choice of person submitted
-def button(button_presses,names,name,choice):
+# roles = all roles in game
+def button(button_presses,names,name,choice,roles):
     button_presses[name]=choice
 
     # checks if everyone has submitted
     if len(button_presses)==len(names):
-        done = True
-    else:
-        done = False
+        bad = roles.index(1)
+        said_yes = [i for i in button_presses if button_presses[i].lower().replace("'","")=="press"]
 
-    return button_presses,done
+        # sends text based on everyone's choices and if bad is in pressed
+        for n in button_presses:
+            if button_presses[n].lower().replace("'","")=="press" and names[bad] in said_yes:
+                print(n,"There is a traitor amongst you")
+                print(n,"When you're ready to move on, tell the leader to send next phase")
+            elif button_presses[n].lower().replace("'","")=="press" and names[bad] not in said_yes:
+                print(n,"All clear Agent, no one was corrupt")
+                print(n,"When you're ready to move on, tell the leader to send next phase")
+            elif button_presses[n].lower().replace("'","")=="dont press":
+                print(n,"You've chosen to sit out")
+                print(n,"When you're ready to move on, tell the leader to send next phase")
+
+
+
 
 
 # returns how many people should be on the emergency mission
