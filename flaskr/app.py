@@ -15,12 +15,6 @@ def incoming_sms():
     """Send a dynamic reply to an incoming text message"""
     # Get the message the user sent our Twilio number in lowercase
     body = request.values.get('Body', None).lower()
-    # Get the number the request was sent from
-    from_number = request.form['From']
-    if body == "start new game":
-        game_logic.end_game()
-        game_logic.start_game(from_number)
-        return "Started a new game"
 
     resp = MessagingResponse()
     try:

@@ -6,31 +6,48 @@ from twilio.twiml.messaging_response import MessagingResponse
 project_root = os.path.dirname(os.path.realpath('__file__'))
 template_path = os.path.join(project_root, 'app/templates')
 static_path = os.path.join(project_root, 'app/static')
-app = Flask(__name__, template_folder=template_path, 
-static_folder=static_path)
+app = Flask(__name__, template_folder=template_path,
+            static_folder=static_path)
 
-i=0
+data = {
+    # Example data:
+    # game_1_id: {
+    #     numbers: [#10010010001, #10010010001],
+    #     names: {"Agent India", "Agent Bravo"}},
+    # game_2_id: {
+    #     numbers: [#10010010001, #10010010001],
+    #     names: {"Agent India", "Agent Bravo"}
+    # },
+}
+
 
 @app.route('/')
 def index():
     return 'Hello from flask'
 
+
 @app.route("/sms", methods=['GET', 'POST'])
 def incoming_sms():
     """Send a dynamic reply to an incoming text message"""
+    global data
     # Get the message the user sent our Twilio number
     body = request.values.get('Body', None)
-    global i
+    # Get the number the request was sent from
+    from_number = request.form['From']
+    if body == "start new game":
+        game_logic.end_game()
+        game_logic.start_game(from_number)
+        return "Started a new game"
     # Start our TwiML response
     resp = MessagingResponse()
 
     # Determine the right reply for this message
     if body.lower() == 'hello':
-        i+=1
+        i += 1
         resp.message(str(i))
     elif body.lower() == 'bye':
         resp.message("Goodbye")
-    
+
     return str(resp)
 
 
