@@ -169,8 +169,12 @@ def excecution(choice, name, total_choices, names, roles):
 
 def determine_execution(total_choices, names, roles):
     """
-    >>> total_choices({'a1':['a2','a3'], 'a2':['a1']}, ['a1', 'a2', 'a3'], [1, 0, 0])
+    >>> total_choices({'a1':['a2','a3'], 'a2':['a1'], 'a3':[]}, ['a1', 'a2', 'a3'], [1, 0, 0])
     True, False
+    >>> total_choices({'a1':['a1','a3'], 'a2':['a2'], 'a3':[]}, ['a1', 'a2', 'a3'], [1, 0, 0])
+    False, False
+    >>> total_choices({'a1':[], 'a2':['a1', 'a2', 'a3']}, ['a1', 'a2', 'a3'], [1, 0, 0])
+    False, True
     """
     result = None
     revote = False

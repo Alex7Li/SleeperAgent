@@ -1,5 +1,5 @@
-# from flaskapp import functions
-import functions
+from flaskapp import functions
+# import functions
 import random
 NO_GAME_MESSAGE = "You are not currently playing a game of Sleeper Agent! " \
                   "Text \"Begin enlisting\" without quotes to start"
@@ -16,7 +16,6 @@ def get_game_id(data, texter_number):
     None
     """
     for game_id in data:
-        print(data)
         for phone_number in data[game_id]['numbers']:
             if phone_number == texter_number:
                 return game_id
@@ -66,6 +65,8 @@ def determine_response(data, from_number, body):
         functions.espionage(game_data['names'], game_data['numbers'])
         game_data['phase'] = 2
         return None
+
+
     player_id = game_data["numbers"].index(from_number)
     if phase == 3:
         message = "Now beginning the excecution, submit your vote by Agent Name"
@@ -105,12 +106,7 @@ def determine_response(data, from_number, body):
                 phase += 1
                 results, revote = functions.excecution(role, choice, game_data["total_choices"], game_data["names"],
                                                    game_data["roles"])
-
-                #  TODO        role = roles[game_data["numbers"].index(from_number)]
-                choice = body  # expects a name
-                functions.excecution(role, choice, game_data["total_choices"], game_data["names"], game_data["roles"])
-                functions.send_text(good_numbers, [message] * len(good_numbers))
-
+        end_game()
         
     # phase 3: mission
     if phase == 2 and from_number == game_data['numbers'][0]:
@@ -121,8 +117,7 @@ def determine_response(data, from_number, body):
         mission_list = mission_list.replace("/", "")
         mission_list = mission_list.split()
         game_data['mission_list'] = mission_list
-        #TODO be more flexible with inputs
-        mission_names = ' '.join([str(elem) for elem in mission_list]) 
+        # TODO be more flexible with inputs
         mission_names = ' '.join([str(elem) for elem in mission_list])
 
         game_data['phase'] = 2.25
