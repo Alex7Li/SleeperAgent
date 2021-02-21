@@ -1,6 +1,6 @@
 import os
 from flask import Flask, request, session
-
+from . import user
 from flaskr import game_logic
 
 from . import db
@@ -28,6 +28,7 @@ def create_app(test_config=None):
         pass
 
     db.init_app(app)
+    app.register_blueprint(auth.bp)
     return app
 
 
