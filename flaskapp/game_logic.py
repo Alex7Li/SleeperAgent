@@ -1,6 +1,7 @@
 import functions
 # import functions
 import random
+
 NO_GAME_MESSAGE = "You are not currently playing a game of Sleeper Agent! " \
                   "Text \"Begin enlisting\" without quotes to start"
 IN_MISSION = "Wait for the person who started the mission to text 'Start mission' or exit by texting 'Abort'"
@@ -26,15 +27,7 @@ def determine_response(data, from_number, body):
     """
     Determine how to respond to a given text message,
     or None for no response.
-    >>> determine_response({'id1':{ 'numbers': ['#1', '#2']},'id2': { 'numbers': ["#3", "#4"]}}, '#5', 'push')
-    'You are not currently playing a game of Sleeper Agent! Text "Begin enlisting" without quotes to start'
-    >>> determine_response({'id1':{ 'numbers': ['#1', '#2']}}, '#3', 'enlist me id1')
-    'Successfully joined mission id1'
-    >>> determine_response({'id1':{ 'numbers': ['#1', '#2']}}, '#1', 'enlist me id1')
-    "You are already enlisted in mission id1. Wait for the person who started the mission to text 'Start mission' or exit by texting 'Abort'"
-    >>> determine_response({'id1':{ 'numbers': ['#1', '#2']}}, '#1', 'begin enlisting')
-    "You are already enlisted in mission id1. Wait for the person who started the mission to text 'Start mission' or exit by texting 'Abort'"
-    >>> determine_response({}, '#1', 'begin enlisting')
+    >>> determine_response({'123':{'numbers': ['#1', '#2', '#3']}}, '#2', 'enlist me 123')
     "You are already enlisted in mission id1. Wait for the person who started the mission to text 'Start mission' or exit by texting 'Abort'"
     """
     game_id = get_game_id(data, from_number)
@@ -44,13 +37,16 @@ def determine_response(data, from_number, body):
         if body == "begin enlisting":
             game_id = str(random.randint(0, 10000000))
             data[game_id] = {'numbers': [from_number]}
-            return "Started mission " + game_id + ". Tell others to join by texting 'enlist me " \
-                   + game_id + "' to this number without quotes. Start the mission by texting 'Begin enlisting'"
+            return "Began Enlisting for " + game_id + ". Tell others to join by texting 'enlist me " \
+                   + game_id + "' to this number without quotes. Start the mission by texting 'Start Mission'"
         elif ' '.join(body.split(" ")[:2]) == "enlist me":
             game_id = ''.join(body.split(" ")[2:])
-            add_to_game(data[game_id], from_number)
             print(data)
-            return "Successfully joined mission " + game_id
+            if game_id in data:
+                add_to_game(data[game_id], from_number)
+                return "Successfully joined mission " + game_id
+            else:
+                return "This game id was not found."
         else:
             return NO_GAME_MESSAGE
     # Setting up a game
@@ -108,9 +104,9 @@ def determine_response(data, from_number, body):
                     functions.send_text(good_numbers, [message for m in range(len(good_numbers))])
                 phase += 1
                 results, revote = functions.excecution(role, choice, game_data["total_choices"], game_data["names"],
-                                                   game_data["roles"])
+                                                       game_data["roles"])
         end_game()
-        
+
     # phase 3: mission
     if phase == 2 and from_number == game_data['numbers'][0]:
         # get the mission list
@@ -128,7 +124,7 @@ def determine_response(data, from_number, body):
 
     if phase == 2.25 and from_number == game_data['numbers'][0]:
         if "y" in body.lower():
-            functions.emergency_mission(game_data['roles'],game_data['mission_list'], game_data['names'])
+            functions.emergency_mission(game_data['roles'], game_data['mission_list'], game_data['names'])
             game_data['phase'] = 3
             functions.emergency_mission(game_data['roles'], game_data['mission_list'], game_data['names'])
         if "n" in body.lower():
