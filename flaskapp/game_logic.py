@@ -165,6 +165,7 @@ def remove_from_game(game_data, from_phone_number):
 
 
 def start_game(game_data):
+    print(game_data)
     game_data['roles'] = functions.setupGameState(len(game_data['numbers']))
     game_data["total_choices"] = {}
 
