@@ -1,4 +1,4 @@
-from flaskapp import functions
+import functions
 
 NO_GAME_MESSAGE = "You are not currently playing a game of Sleeper Agent! " \
                   "Text \"Begin enlisting\" without quotes to start"
@@ -68,18 +68,19 @@ def determine_response(data, from_number, body):
         phase += 1
         return None
 
-    if phase == 4:
+    if phase == 3:
         phase+=1
         if game_data["first_time_4"]:
             message = "Now begining the excecution, submit your vote by Agent Name"
             functions.send_text(game_data["numbers"],np.full(len(game_data["numbers"]),message))
             game_data["first_time_4"]= False
-            revote = True
+            revote = False
+            done = False
 
-        while revote:
+        while revote or not done:
             role = roles[game_data["numbers"].index(from_number)]
             choice = body # expects a name
-            results,revote = functions.excecution(role,choice,game_data["total_choices"],game_data["names"],game_data["roles"])
+            results,revote,done = functions.excecution(role,choice,game_data["total_choices"],game_data["names"],game_data["roles"])
             if revote:
                 message = "Seems there is a disagreement, try voting again"
                 functions.send_text(game_data["numbers"],np.full(len(game_data["numbers"]),message))
@@ -103,13 +104,6 @@ def determine_response(data, from_number, body):
                     functions.send_text(good_numbers,np.full(len(good_numbers),message))
 
                     
-
-
-
-
-        role = roles[game_data["numbers"].index(from_number)]
-        choice = body # expects a name
-        functions.excecution(role,choice,game_data["total_choices"],game_data["names"],game_data["roles"])
         
     # phase 3: mission
     if phase == 2 and from_number == game_data['numbers'][0]:

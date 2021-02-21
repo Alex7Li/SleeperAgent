@@ -9,12 +9,8 @@ from twilio.twiml.messaging_response import MessagingResponse
 # checks to the left or right
 # names = all names in game
 # roles = all roles in game
-<<<<<<< HEAD
-def espionage(roles):
 
-=======
-def espionage(names, roles):
->>>>>>> 3e344c59106ef5299b4afffc8f3d10abb59c3b35
+def espionage(roles):
     texts = []
     n = len(roles)
     right = np.random.randint(0, 2)
@@ -102,7 +98,6 @@ def button(button_presses, numbers, number, choice, roles):
     done = len(button_presses) == len(numbers)
     if done:
         bad = roles.index(1)
-<<<<<<< HEAD
         said_yes = [i for i in button_presses if button_presses[i].lower().replace("'","")=="take"]
 
         # sends text based on everyone's choices and if bad is in pressed
@@ -117,23 +112,6 @@ def button(button_presses, numbers, number, choice, roles):
                 send_text(n,"You've chosen to sit out")
                 send_text(n,"When you're ready to move on, tell the leader to send next phase")
 
-
-=======
-        said_yes = [i for i in button_presses if button_presses[i].lower().replace("'", "") == "press"]
-
-        # sends text based on everyone's choices and if bad is in pressed
-        for n in button_presses:
-            if button_presses[n].lower().replace("'", "") == "press" and numbers[bad] in said_yes:
-                send_text(n, "There is a traitor amongst you")
-                send_text(n, "When you're ready to move on, tell the leader to send next phase")
-            elif button_presses[n].lower().replace("'", "") == "press" and numbers[bad] not in said_yes:
-                send_text(n, "All clear Agent, no one was corrupt")
-                send_text(n, "When you're ready to move on, tell the leader to send next phase")
-            elif button_presses[n].lower().replace("'", "") == "dont press":
-                send_text(n, "You've chosen to sit out")
-                send_text(n, "When you're ready to move on, tell the leader to send next phase")
-    return done
->>>>>>> 3e344c59106ef5299b4afffc8f3d10abb59c3b35
 
 
 # returns how many people should be on the emergency mission
@@ -180,6 +158,7 @@ def excecution(role, choice, name, total_choices, names, roles):
     result = None
     revote = False
     if summer == len(names):
+        done=True
         for n in names:
             bad = roles.index(1)
             # if bad chose themselves they win
@@ -193,6 +172,7 @@ def excecution(role, choice, name, total_choices, names, roles):
 
             else:
                 revote = True
+    else: done=False
 
     game_data["total_choices"] = total_choices
-    return result, revote
+    return result, revote, done
