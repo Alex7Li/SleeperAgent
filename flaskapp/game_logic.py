@@ -1,9 +1,5 @@
-<<<<<<< HEAD
-from flaskapp import functions
-=======
+# from flaskapp import functions
 import functions
->>>>>>> bd6669f7e44f4c6b8b032b5fe139d5f15a320a7e
-# import functions
 import random
 NO_GAME_MESSAGE = "You are not currently playing a game of Sleeper Agent! " \
                   "Text \"Begin enlisting\" without quotes to start"
