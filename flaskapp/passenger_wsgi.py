@@ -4,7 +4,6 @@ from flask import Flask, request
 from twilio.twiml.messaging_response import MessagingResponse
 
 from flaskapp import game_logic
-from flaskapp.game_logic import get_game_id
 
 project_root = os.path.dirname(os.path.realpath('__file__'))
 template_path = os.path.join(project_root, 'app/templates')
@@ -13,13 +12,14 @@ app = Flask(__name__, template_folder=template_path,
             static_folder=static_path)
 
 data = {
+    "id": 0
     # Example data:
     # game_1_id: {
-    #     numbers: ["#10010010001", "#10010010001"],
-    #     names: {"Agent India", "Agent Bravo"}},
+    #     'numbers': ["#10010010001", "#10010010001"],
+    #     'names': ["Agent India", "Agent Bravo"]},
     # game_2_id: {
-    #     numbers: ["#10010010001", "#10010010001"],
-    #     names: {"Agent India", "Agent Bravo"}
+    #     'numbers': ["#10010010001", "#10010010001"],
+    #     'names': ["Agent India", "Agent Bravo"]
     # },
 }
 
@@ -34,25 +34,14 @@ def incoming_sms():
     """Send a dynamic reply to an incoming text message"""
     global data
     # Get the message the user sent our Twilio number
-    body = request.values.get('Body', None)
+    body = request.values.get('Body', None).lower()
     # Get the number the request was sent from
-    from_number = request.form['From']
-    game_data = get_game_id(data, from_number)
+    from_number = request.form['From'].lower()
 
-    if body == "start new game":
-        game_logic.end_game()
-        game_logic.start_game(from_number)
-        return "Started a new game"
-    # Start our TwiML response
-    resp = MessagingResponse()
-
-    # Determine the right reply for this message
-    if body.lower() == 'hello':
-        resp.message()
-    elif body.lower() == 'bye':
-        resp.message("Goodbye")
-
-    return str(resp)
+    response = game_logic.determine_response(data, from_number, body)
+    # Text back the response
+    if response is not None:
+        return str(MessagingResponse(response))
 
 
 application = app
