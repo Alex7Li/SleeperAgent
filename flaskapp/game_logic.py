@@ -61,6 +61,17 @@ def determine_response(data, from_number, body):
     game_data = data[game_id]
     phase = game_data['phase']
 
+    if phase == 0:
+        if body == 'take' or body == "don't take":
+            done = functions.button(game_data['button_presses'], game_data['numbers'],
+                                    from_number, body, game_data['roles'])
+            if done:
+                game_data['phase'] = 1
+                return None
+            else:
+                return "Submitted"
+        else:
+            return "Please type in 'take' or 'don't take'."
     if phase == 1 and body == 'next phase':
         functions.espionage(game_data['names'], game_data['numbers'])
         game_data['phase'] = 2
@@ -173,6 +184,7 @@ def start_game(game_data):
     game_data['roles'] = functions.setupGameState(n)
     game_data['names'] = functions.nameGenerator(n)
     game_data['phase'] = 1
+    game_data['button_presses'] = {}
     functions.send_text(game_data['numbers'],
                         [
                             "If you would like to take the lie detector test then HQ will analyze the results and send them " +
