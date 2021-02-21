@@ -1,4 +1,4 @@
-import numpy as np
+
 import os
 from twilio.rest import Client
 import random
@@ -8,10 +8,10 @@ from twilio.twiml.messaging_response import MessagingResponse
 
 # checks to the left or right
 # roles = all roles in game
-def espionage(roles):
+def espionage(roles, numbers):
     texts = []
     n = len(roles)
-    right = np.random.randint(0, 2)
+    right = random.randint(0, 1)
     for c in range(len(roles)):
         if right:
             if roles[(c + 1) % n]:
@@ -31,8 +31,8 @@ def espionage(roles):
 # n = number of players
 def setupGameState(n):
     # 0 = good, 1 = bad
-    roles = np.zeros(n)
-    roles[np.random.randint(0, n)] = 1
+    roles = [0 for i in range(n)]
+    roles[random.randint(0, n - 1)] = 1
     return roles
 
 
@@ -102,8 +102,8 @@ def button(button_presses, numbers, number, choice, roles):
 
 # returns how many people should be on the emergency mission
 # names = all names in game
-def get_emergency_mission_number(names):
-    return np.ceil(len(names) / 2)
+# def get_emergency_mission_number(names):
+#     return np.ceil(len(names) / 2)
 
 
 # determines if bad person is on emergency mission
@@ -160,7 +160,7 @@ def determine_execution(total_choices, names, roles):
     if names[bad] in total_choices[names[bad]]:
         result = False
     # if x num chose bad, good win
-    elif len(total_choices[names[bad]]) >= (np.ceil(len(names) / 2) - 1):
+    elif len(total_choices[names[bad]]) >= (len(names)-1) // 2:
         result = True
     else:
         revote = True
