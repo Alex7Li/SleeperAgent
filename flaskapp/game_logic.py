@@ -27,7 +27,7 @@ def determine_response(data, from_number, body):
     """
     Determine how to respond to a given text message,
     or None for no response.
-    >>> determine_response({'123':{'numbers': ['#1', '#2', '#3']}}, '#2', 'enlist me 123')
+    >>> determine_response({'123':{'numbers': ['#1', '#2', '#3']}}, '#1', 'start mission')
     "You are already enlisted in mission id1. Wait for the person who started the mission to text 'Start mission' or exit by texting 'Abort'"
     """
     game_id = get_game_id(data, from_number)
@@ -53,9 +53,9 @@ def determine_response(data, from_number, body):
     if ' '.join(body.split(" ")[:2]) == "enlist me" or body == 'begin enlisting':
         return "You are already enlisted in mission " + game_id + ". " + IN_MISSION
     elif body == 'start mission':
-        start_game(game_id)
+        start_game(data[game_id])
     elif body == 'abort':
-        remove_from_game(game_id, from_number)
+        remove_from_game(data[game_id], from_number)
         return "You have left the mission."
 
     game_data = data[game_id]
@@ -161,6 +161,10 @@ def remove_from_game(game_data, from_phone_number):
 
 
 def start_game(game_data):
+    """
+    >>> start_game({'numbers': ['#1', '#2', '#3']})
+    asd
+    """
     game_data['roles'] = functions.setupGameState(len(game_data['numbers']))
     game_data["total_choices"] = {}
 
