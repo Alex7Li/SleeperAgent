@@ -103,14 +103,14 @@ def button(button_presses,names,name,choice,roles):
         # sends text based on everyone's choices and if bad is in pressed
         for n in button_presses:
             if button_presses[n].lower().replace("'","")=="press" and names[bad] in said_yes:
-                print(n,"There is a traitor amongst you")
-                print(n,"When you're ready to move on, tell the leader to send next phase")
+                send_text(n,"There is a traitor amongst you")
+                send_text(n,"When you're ready to move on, tell the leader to send next phase")
             elif button_presses[n].lower().replace("'","")=="press" and names[bad] not in said_yes:
-                print(n,"All clear Agent, no one was corrupt")
-                print(n,"When you're ready to move on, tell the leader to send next phase")
+                send_text(n,"All clear Agent, no one was corrupt")
+                send_text(n,"When you're ready to move on, tell the leader to send next phase")
             elif button_presses[n].lower().replace("'","")=="dont press":
-                print(n,"You've chosen to sit out")
-                print(n,"When you're ready to move on, tell the leader to send next phase")
+                send_text(n,"You've chosen to sit out")
+                send_text(n,"When you're ready to move on, tell the leader to send next phase")
 
 
 
