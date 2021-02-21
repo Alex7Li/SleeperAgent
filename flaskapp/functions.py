@@ -1,4 +1,4 @@
-import numpy as np
+
 import os
 from twilio.rest import Client
 import random
@@ -13,7 +13,7 @@ from twilio.twiml.messaging_response import MessagingResponse
 def espionage(roles):
     texts = []
     n = len(roles)
-    right = np.random.randint(0, 2)
+    right = random.randint(0, 1)
     for c in range(len(roles)):
         if right:
             if roles[(c + 1) % n]:
@@ -34,7 +34,7 @@ def espionage(roles):
 # n = number of players
 def setupGameState(n):
     # 0 = good, 1 = bad
-    roles = np.zeros(n)
+    roles = [0 for i in range(n)]
     roles[random.randint(0, n - 1)] = 1
     return roles
 
@@ -116,8 +116,8 @@ def button(button_presses, numbers, number, choice, roles):
 
 # returns how many people should be on the emergency mission
 # names = all names in game
-def get_emergency_mission_number(names):
-    return np.ceil(len(names) / 2)
+# def get_emergency_mission_number(names):
+#     return np.ceil(len(names) / 2)
 
 
 # determines if bad person is on emergency mission
@@ -167,7 +167,7 @@ def excecution(role, choice, name, total_choices, names, roles):
                 break
 
             # if x num chose bad, good win
-            elif len(total_choices[names[bad]]) >= (np.ceil(len(names) / 2) - 1):
+            elif len(total_choices[names[bad]]) >= int((len(names) / 2)+0.999):
                 result = True
 
             else:
