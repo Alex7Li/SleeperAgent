@@ -1,4 +1,6 @@
 from flaskapp import functions
+import numpy as np
+# import functions
 
 NO_GAME_MESSAGE = "You are not currently playing a game of Sleeper Agent! " \
                   "Text \"Begin enlisting\" without quotes to start"
@@ -62,77 +64,80 @@ def determine_response(data, from_number, body):
     phase = game_data['current_phase']
 
     if phase == 1 and body == 'next phase':
-        functions.espionage(game_data['names'], game_data['roles'])
-
+        functions.espionage(game_data['names'], game_data['numbers'])
 
         phase += 1
         return None
-
-    if phase == 4:
-        phase+=1
+    player_id = game_data["numbers"].index(from_number)
+    if phase == 3:
+        revote = False
         if game_data["first_time_4"]:
-            message = "Now begining the excecution, submit your vote by Agent Name"
-            functions.send_text(game_data["numbers"],np.full(len(game_data["numbers"]),message))
-            game_data["first_time_4"]= False
+            message = "Now beginning the excecution, submit your vote by Agent Name"
+            functions.send_text(game_data["numbers"], [message] * len(game_data["numbers"]))
+            game_data["first_time_4"] = False
             revote = True
-
         while revote:
-            role = roles[game_data["numbers"].index(from_number)]
-            choice = body # expects a name
-            results,revote = functions.excecution(role,choice,game_data["total_choices"],game_data["names"],game_data["roles"])
+            role = game_data['roles'][player_id]
+            choice = body  # expects a name
+            results, revote = functions.excecution(role, choice, game_data["total_choices"], game_data["names"],
+                                                   game_data["roles"])
+
             if revote:
                 message = "Seems there is a disagreement, try voting again"
-                functions.send_text(game_data["numbers"],np.full(len(game_data["numbers"]),message))
-                results,revote = functions.excecution(role,choice,game_data["total_choices"],game_data["names"],game_data["roles"])
+                functions.send_text(game_data["numbers"], np.full(len(game_data["numbers"]), message))
+                results, revote = functions.excecution(role, choice, game_data["total_choices"], game_data["names"],
+                                                       game_data["roles"])
             if results != None:
                 ind = game_data["roles"].index(1)
                 bad_number = game_data["numbers"][ind]
-                good_numbers = [num for num,num_ind in zip(num_ind,game_data["numbers"],range(len(game_data["numbers"]))) if num_ind!=ind]
+                good_numbers = [num for num, num_ind in
+                                zip(num_ind, game_data["numbers"], range(game_data["numbers"])) if num_ind != ind]
 
                 if results:
                     message = "Sorry Commrad, You've been busted"
-                    functions.send_text(bad_number,np.full(len(bad_numbers),message))
+                    functions.send_text(bad_number, message)
 
                     message = "Congrats Agents, You caught 'em"
-                    functions.send_text(good_numbers,np.full(len(good_numbers),message))
+                    functions.send_text(good_numbers, np.full(len(good_numbers), message))
                 else:
                     message = "Congrats Comrad, You know too much"
-                    functions.send_text(bad_number,np.full(len(bad_numbers),message))
+                    functions.send_text(bad_number, message)
 
                     message = "Agents Nooo, The sleeper has gotten away"
-                    functions.send_text(good_numbers,np.full(len(good_numbers),message))
+                    functions.send_text(good_numbers, np.full(len(good_numbers), message))
+                phase += 1
+
+            #  TODO        role = roles[game_data["numbers"].index(from_number)]
+            choice = body  # expects a name
+            functions.excecution(role, choice, game_data["total_choices"], game_data["names"], game_data["roles"])
+            functions.send_text(good_numbers,np.full(len(good_numbers),message))
 
                     
-
-
-
-
-        role = roles[game_data["numbers"].index(from_number)]
-        choice = body # expects a name
-        functions.excecution(role,choice,game_data["total_choices"],game_data["names"],game_data["roles"])
         
     # phase 3: mission
     if phase == 2 and from_number == game_data['numbers'][0]:
         # get the mission list
         mission_list = body
-        mission_list = mission_list.replace(",","")
-        mission_list = mission_list.replace(";","")
-        mission_list = mission_list.replace("/","")
+        mission_list = mission_list.replace(",", "")
+        mission_list = mission_list.replace(";", "")
+        mission_list = mission_list.replace("/", "")
         mission_list = mission_list.split()
         game_data['mission_list'] = mission_list
         #TODO be more flexible with inputs
         mission_names = ' '.join([str(elem) for elem in mission_list]) 
+        mission_names = ' '.join([str(elem) for elem in mission_list])
+
         game_data['phase'] = 2.25
         return "Is this the mission you'd like: " + mission_names + "? Respond (Y/N)"
-    
-    if phase == 2.25 and from_number == game_data['numbers'][0]: 
+
+    if phase == 2.25 and from_number == game_data['numbers'][0]:
         if "y" in body.lower():
             functions.emergency_mission(game_data['roles'],game_data['mission_list'], game_data['names'])
             game_data['phase'] = 3
+            functions.emergency_mission(game_data['roles'], game_data['mission_list'], game_data['names'])
         if "n" in body.lower():
             game_data['phase'] = 2
             return "Please try again, send a list of the names you'd like to go on the mission"
-        
 
     return None
 
@@ -177,10 +182,11 @@ def start_game(game_data):
     game_data['roles'] += functions.setupGameState(n)
     game_data['names'] += functions.nameGenerator(n)
     functions.send_text(game_data['numbers'],
-        ["If you would like to take the lie detector test then HQ will analyze the results and send them " +
-         "back to those who took the test. But, the results are aggregated among all people who took the test for " +
-         "privacy reasons. Text 'Take' or 'Don't Take'."]*n)
+                        [
+                            "If you would like to take the lie detector test then HQ will analyze the results and send them " +
+                            "back to those who took the test. But, the results are aggregated among all people who took the test for " +
+                            "privacy reasons. Text 'Take' or 'Don't Take'."] * n)
+
 
 def end_game():
-    # session.pop('callers', None)
     pass
