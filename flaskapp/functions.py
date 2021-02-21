@@ -134,7 +134,7 @@ def emergency_mission(roles, mission_names, names):
     for i in agentIDs:
         if is_bad_on_mission:
             send_text(game_data['numbers'][i],"There was a sleeper agent on this mission")
-        else
+        else:
             send_text(game_data['numbers'][i],"There was no sleeper agent on this mission")
 
     return if_bad_on_mission
