@@ -4,6 +4,7 @@ from flask import Flask, request
 from twilio.twiml.messaging_response import MessagingResponse
 
 from flaskapp import game_logic
+from flaskapp import functions
 
 project_root = os.path.dirname(os.path.realpath('__file__'))
 template_path = os.path.join(project_root, 'app/templates')
@@ -25,8 +26,7 @@ data = {
 
 @app.route('/')
 def index():
-    return 'Hello from flask'
-
+    return "Text this number to play 720-399-8395"
 
 
 @app.route("/sms", methods=['GET', 'POST'])
