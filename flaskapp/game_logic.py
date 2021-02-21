@@ -139,7 +139,7 @@ def add_to_game(game_data, from_number):
     """
     Add a player to the game
     """
-    game_data['numbers'] += from_number
+    game_data['numbers'] += [from_number]
     # TODO game_data[from_number]['names'] += generate_name()
     pass
 
