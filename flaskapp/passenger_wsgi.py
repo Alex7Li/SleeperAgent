@@ -12,7 +12,6 @@ app = Flask(__name__, template_folder=template_path,
             static_folder=static_path)
 
 data = {
-    "id": 0
     # Example data:
     # game_1_id: {
     #     'numbers': ["#10010010001", "#10010010001"],
