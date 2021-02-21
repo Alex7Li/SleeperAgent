@@ -115,10 +115,10 @@ def emergency_mission(roles, mission_names, names):
 
     # get the indices of the given names in the set
     agentIDs = []
-    for i in range(len(mission_list)):
+    for i in range(len(mission_names)):
         for j in range(len(names)):
             shortName = names[j].lower().replace("agent ", "")
-        if mission_list[i] == shortName:
+        if mission_names[i] == shortName:
             agentIDs.append(j)
 
     if_bad_on_mission = False
