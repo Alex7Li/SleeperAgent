@@ -9,20 +9,24 @@ from twilio.twiml.messaging_response import MessagingResponse
 # checks to the left or right
 # names = all names in game
 # roles = all roles in game
+<<<<<<< HEAD
 def espionage(roles):
 
+=======
+def espionage(names, roles):
+>>>>>>> 3e344c59106ef5299b4afffc8f3d10abb59c3b35
     texts = []
     n = len(roles)
     right = np.random.randint(0, 2)
     for c in range(len(roles)):
         if right:
-            if roles[(c+1) % n]:
+            if roles[(c + 1) % n]:
                 texts.append("CODE RED: Espionage Detected")
             else:
                 texts.append("ALL CLEAR: Espionage NOT Detected")
 
         else:
-            if roles[(c-1) % n]:
+            if roles[(c - 1) % n]:
                 texts.append("CODE RED: Espionage Detected")
             else:
                 texts.append("ALL CLEAR: Espionage NOT Detected")
@@ -41,7 +45,7 @@ def setupGameState(n):
 
 # creates names from how many are needed
 # num_names = num of players
-def NameGenerator(num_names):
+def nameGenerator(num_names):
     list_names = ['Alpha', 'Bravo', 'Charlie', 'Delta', 'Echo',
                   'Foxtrot', 'Golf', 'Hotel', 'India', 'Juliet',
                   'Kilo', 'Lima', 'Mike', 'November', 'Oscar', 'Papa',
@@ -91,12 +95,14 @@ def send_text(numbers, texts):
 # name = name of person submitted
 # choice = choice of person submitted
 # roles = all roles in game
-def button(button_presses,numbers,number,choice,roles):
-    button_presses[number]=choice
+def button(button_presses, numbers, number, choice, roles):
+    button_presses[number] = choice
 
     # checks if everyone has submitted
-    if len(button_presses)==len(numbers):
+    done = len(button_presses) == len(numbers)
+    if done:
         bad = roles.index(1)
+<<<<<<< HEAD
         said_yes = [i for i in button_presses if button_presses[i].lower().replace("'","")=="take"]
 
         # sends text based on everyone's choices and if bad is in pressed
@@ -112,6 +118,22 @@ def button(button_presses,numbers,number,choice,roles):
                 send_text(n,"When you're ready to move on, tell the leader to send next phase")
 
 
+=======
+        said_yes = [i for i in button_presses if button_presses[i].lower().replace("'", "") == "press"]
+
+        # sends text based on everyone's choices and if bad is in pressed
+        for n in button_presses:
+            if button_presses[n].lower().replace("'", "") == "press" and numbers[bad] in said_yes:
+                send_text(n, "There is a traitor amongst you")
+                send_text(n, "When you're ready to move on, tell the leader to send next phase")
+            elif button_presses[n].lower().replace("'", "") == "press" and numbers[bad] not in said_yes:
+                send_text(n, "All clear Agent, no one was corrupt")
+                send_text(n, "When you're ready to move on, tell the leader to send next phase")
+            elif button_presses[n].lower().replace("'", "") == "dont press":
+                send_text(n, "You've chosen to sit out")
+                send_text(n, "When you're ready to move on, tell the leader to send next phase")
+    return done
+>>>>>>> 3e344c59106ef5299b4afffc8f3d10abb59c3b35
 
 
 # returns how many people should be on the emergency mission
