@@ -67,9 +67,12 @@ def send_text(numbers, texts):
     auth_token = ""
 
     client = Client(account_sid, auth_token)
-
+    if isinstance(numbers, str):
+        numbers = [numbers]
+    if isinstance(texts, str):
+        texts = [texts]
     for number, text in zip(numbers, texts):
-        message = client.messages.create(
+        client.messages.create(
             to=number,
             from_="+17203998395",
             body=text)
