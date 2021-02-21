@@ -26,8 +26,7 @@ data = {
 
 @app.route('/')
 def index():
-    return 'Hello from flask'
-
+    return "Text this number to play 720-399-8395"
 
 
 @app.route("/sms", methods=['GET', 'POST'])
