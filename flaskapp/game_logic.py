@@ -123,12 +123,17 @@ def determine_response(data, from_number, body):
         mission_list = mission_list.replace("/", "")
         mission_list = mission_list.split()
         game_data['mission_list'] = mission_list
+        #TODO be more flexible with inputs
+        mission_names = ' '.join([str(elem) for elem in mission_list]) 
         mission_names = ' '.join([str(elem) for elem in mission_list])
+
         game_data['phase'] = 2.25
         return "Is this the mission you'd like: " + mission_names + "? Respond (Y/N)"
 
     if phase == 2.25 and from_number == game_data['numbers'][0]:
         if "y" in body.lower():
+            functions.emergency_mission(game_data['roles'],game_data['mission_list'], game_data['names'])
+            game_data['phase'] = 3
             functions.emergency_mission(game_data['roles'], game_data['mission_list'], game_data['names'])
         if "n" in body.lower():
             game_data['phase'] = 2
