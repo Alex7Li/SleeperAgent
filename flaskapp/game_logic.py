@@ -40,7 +40,7 @@ def determine_response(data, from_number, body):
         print(data)
         # Not currently in a game
         if body == "begin enlisting":
-            game_id = random.randint(0, 10000000)
+            game_id = str(random.randint(0, 10000000))
             data[game_id]['numbers'] = [from_number]
             return "Started mission " + game_id + ". Tell others to join by texting 'enlist me " \
                    + game_id + "' to this number without quotes. Start the mission by texting 'Begin enlisting'"
