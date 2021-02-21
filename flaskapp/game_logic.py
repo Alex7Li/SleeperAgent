@@ -16,7 +16,6 @@ def get_game_id(data, texter_number):
     None
     """
     for game_id in data:
-        print(data)
         for phone_number in data[game_id]['numbers']:
             if phone_number == texter_number:
                 return game_id
@@ -146,7 +145,7 @@ def add_to_game(game_data, from_number):
     """
     Add a player to the game
     """
-    game_data['numbers'] += from_number
+    game_data['numbers'] += [from_number]
     # TODO game_data[from_number]['names'] += generate_name()
     pass
 
