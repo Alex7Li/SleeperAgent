@@ -10,19 +10,18 @@ from twilio.twiml.messaging_response import MessagingResponse
 # names = all names in game
 # roles = all roles in game
 def espionage(names, roles):
-    roles.append(roles[0])
-
     texts = []
+    n = len(roles)
     right = np.random.randint(0, 2)
     for c in range(len(names)):
         if right:
-            if roles[c + 1]:
+            if roles[(c + 1) % n]:
                 texts.append("CODE RED: Espionage Detected")
             else:
                 texts.append("ALL CLEAR: Espionage NOT Detected")
 
         else:
-            if roles[c - 1]:
+            if roles[(c - 1) % n]:
                 texts.append("CODE RED: Espionage Detected")
             else:
                 texts.append("ALL CLEAR: Espionage NOT Detected")
@@ -90,15 +89,27 @@ def send_text(numbers, texts):
 # names = all names in game
 # name = name of person submitted
 # choice = choice of person submitted
+# roles = all roles in game
 def button(button_presses, numbers, number, choice, roles):
-    button_presses[name] = choice
+    button_presses[number] = choice
 
     # checks if everyone has submitted
-    if len(button_presses) == len(names):
-        done = True
-    else:
-        done = False
+    done = len(button_presses) == len(numbers)
+    if done:
+        bad = roles.index(1)
+        said_yes = [i for i in button_presses if button_presses[i].lower().replace("'", "") == "press"]
 
+        # sends text based on everyone's choices and if bad is in pressed
+        for n in button_presses:
+            if button_presses[n].lower().replace("'", "") == "press" and numbers[bad] in said_yes:
+                send_text(n, "There is a traitor amongst you")
+                send_text(n, "When you're ready to move on, tell the leader to send next phase")
+            elif button_presses[n].lower().replace("'", "") == "press" and numbers[bad] not in said_yes:
+                send_text(n, "All clear Agent, no one was corrupt")
+                send_text(n, "When you're ready to move on, tell the leader to send next phase")
+            elif button_presses[n].lower().replace("'", "") == "dont press":
+                send_text(n, "You've chosen to sit out")
+                send_text(n, "When you're ready to move on, tell the leader to send next phase")
     return done
 
 
