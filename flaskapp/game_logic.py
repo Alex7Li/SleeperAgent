@@ -16,6 +16,7 @@ def get_game_id(data, texter_number):
     None
     """
     for game_id in data:
+        print(data)
         for phone_number in data[game_id]['numbers']:
             if phone_number == texter_number:
                 return game_id
