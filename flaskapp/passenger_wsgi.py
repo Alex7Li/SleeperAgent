@@ -16,10 +16,10 @@ data = {
     # Example data:
     # game_1_id: {
     #     numbers: [#10010010001, #10010010001],
-    #     names: {"Agent India", "Agent Bravo"}},
+    #     names: ["Agent India", "Agent Bravo"]},
     # game_2_id: {
     #     numbers: [#10010010001, #10010010001],
-    #     names: {"Agent India", "Agent Bravo"}
+    #     names: ["Agent India", "Agent Bravo"]
     # },
 }
 
@@ -52,6 +52,7 @@ def incoming_sms():
         resp.message("Goodbye")
 
     return str(resp)
+
 
 
 application = app

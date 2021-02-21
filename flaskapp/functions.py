@@ -2,6 +2,8 @@ import numpy as np
 import os
 from twilio.rest import Client
 import random
+from flask import Flask, request
+from twilio.twiml.messaging_response import MessagingResponse
 
 # checks to the left and right and ra
 def espionage(numbers,roles):
@@ -75,6 +77,20 @@ def send_text(numbers,text):
             to="+1" + number,
             from_="+17203998395",
             body=text)
+
+
+# adds persons choice to press button, checks if everyone has entered
+def button(button_presses,numbers,number,choice):
+    button_presses[number]=choice
+
+    # checks if everyone has submitted
+    if len(button_presses)==len(numbers):
+        done = True
+    else:
+        done = False
+
+    return button_presses,done
+
 
 
 
