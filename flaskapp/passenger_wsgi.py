@@ -43,7 +43,9 @@ def incoming_sms():
     response = game_logic.determine_response(data, from_number, body)
     # Text back the response
     if response is not None:
-        return str(MessagingResponse(response))
+        resp = MessagingResponse()
+        resp.message(response)
+        return str(resp)
 
 
 
