@@ -9,12 +9,9 @@ from twilio.twiml.messaging_response import MessagingResponse
 # checks to the left or right
 # names = all names in game
 # roles = all roles in game
-<<<<<<< HEAD
+
 def espionage(roles):
 
-=======
-def espionage(names, roles):
->>>>>>> 3e344c59106ef5299b4afffc8f3d10abb59c3b35
     texts = []
     n = len(roles)
     right = np.random.randint(0, 2)
@@ -102,7 +99,7 @@ def button(button_presses, numbers, number, choice, roles):
     done = len(button_presses) == len(numbers)
     if done:
         bad = roles.index(1)
-<<<<<<< HEAD
+
         said_yes = [i for i in button_presses if button_presses[i].lower().replace("'","")=="take"]
 
         # sends text based on everyone's choices and if bad is in pressed
@@ -117,23 +114,8 @@ def button(button_presses, numbers, number, choice, roles):
                 send_text(n,"You've chosen to sit out")
                 send_text(n,"When you're ready to move on, tell the leader to send next phase")
 
-
-=======
-        said_yes = [i for i in button_presses if button_presses[i].lower().replace("'", "") == "press"]
-
-        # sends text based on everyone's choices and if bad is in pressed
-        for n in button_presses:
-            if button_presses[n].lower().replace("'", "") == "press" and numbers[bad] in said_yes:
-                send_text(n, "There is a traitor amongst you")
-                send_text(n, "When you're ready to move on, tell the leader to send next phase")
-            elif button_presses[n].lower().replace("'", "") == "press" and numbers[bad] not in said_yes:
-                send_text(n, "All clear Agent, no one was corrupt")
-                send_text(n, "When you're ready to move on, tell the leader to send next phase")
-            elif button_presses[n].lower().replace("'", "") == "dont press":
-                send_text(n, "You've chosen to sit out")
-                send_text(n, "When you're ready to move on, tell the leader to send next phase")
     return done
->>>>>>> 3e344c59106ef5299b4afffc8f3d10abb59c3b35
+
 
 
 # returns how many people should be on the emergency mission
@@ -147,12 +129,27 @@ def get_emergency_mission_number(names):
 # mission_names = all people going on mission
 # names = all names in game
 def emergency_mission(roles, mission_names, names):
-    mission_roles = [r for r, n in zip(roles, names) if n in mission_names]
-
-    if sum(mission_roles) > 0:
-        if_bad_on_mission = True
-    else:
-        if_bad_on_mission = False
+    # TODO ask alex about a 'set'
+    
+    # get the indices of the given names in the set
+    agentIDs = []
+    for i in range(len(mission_list)):
+        for j in range(len(names)):
+            shortName = names[j].lower().replace("agent ","")
+        if mission_list[i] == shortName:
+            agentIDs.append(j)
+    
+    if_bad_on_mission = False
+    
+    for i in range(len(agentIDs)):
+        if roles[agentIDs[i]] == 1:
+            if_bad_on_mission = True
+            
+    for i in agentIDs:
+        if is_bad_on_mission:
+            send_text(game_data['numbers'][i],"There was a sleeper agent on this mission")
+        else
+            send_text(game_data['numbers'][i],"There was no sleeper agent on this mission")
 
     return if_bad_on_mission
 
