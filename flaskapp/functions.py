@@ -41,7 +41,7 @@ def setupGameState(n):
 
 # creates names from how many are needed
 # num_names = num of players
-def NameGenerator(num_names):
+def nameGenerator(num_names):
     list_names = ['Alpha', 'Bravo', 'Charlie', 'Delta', 'Echo',
                   'Foxtrot', 'Golf', 'Hotel', 'India', 'Juliet',
                   'Kilo', 'Lima', 'Mike', 'November', 'Oscar', 'Papa',
@@ -90,7 +90,7 @@ def send_text(numbers, texts):
 # names = all names in game
 # name = name of person submitted
 # choice = choice of person submitted
-def button(button_presses, names, name, choice):
+def button(button_presses, numbers, number, choice, roles):
     button_presses[name] = choice
 
     # checks if everyone has submitted
@@ -99,7 +99,7 @@ def button(button_presses, names, name, choice):
     else:
         done = False
 
-    return button_presses, done
+    return done
 
 
 # returns how many people should be on the emergency mission

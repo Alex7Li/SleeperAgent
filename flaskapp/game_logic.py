@@ -53,16 +53,31 @@ def determine_response(data, from_number, body):
     if ' '.join(body.split(" ")[:2]) == "enlist me" or body == 'begin enlisting':
         return "You are already enlisted in mission " + game_id + ". " + IN_MISSION
     elif body == 'start mission':
-        start_game(game_id)
+        if len(data[game_id]['numbers']) > 2:
+            start_game(game_id)
+            return None
+        else:
+            return "Not enough players, need at least 3 but you only have " + str(len(data[game_id]['numbers']))
     elif body == 'abort':
         remove_from_game(game_id, from_number)
         return "You have left the mission."
 
     game_data = data[game_id]
     phase = game_data['current_phase']
-
+    if phase == 0:
+        if body == 'press' or body == "don't press":
+            done = functions.button(game_data['button_presses'], game_data['numbers'],
+                                    from_number, body, game_data['roles'])
+            if done:
+                phase += 1
+            else:
+                return None
+        else:
+            return "Please text 'press' or 'don't press' to play"
     if phase == 1 and body == 'next phase':
         functions.espionage(game_data['names'], game_data['roles'])
+        phase += 1
+        return None
 
     return None
 
@@ -72,15 +87,14 @@ def add_to_game(game_data, from_number):
     Add a player to the game
     """
     game_data['numbers'] += from_number
-    # TODO game_data[from_number]['names'] += generate_name()
     pass
 
 
 def remove_from_game(game_data, from_phone_number):
     """
     Remove a player from the game
-    >>> remove_from_game({'numbers': ["1", "2"], 'names': ["Agent India", "Agent Bravo"]}, 1)
-    {'numbers': ["2"], 'names': ["Agent Bravo"]}
+    >>> remove_from_game({'numbers': ["1", "2"]}, 1)
+    {'numbers': ["2"]}
 
     If roles have already been assigned, don't change anything and return None
     >>> remove_from_game({'numbers': ["1", "2"], 'names': ["Agent India", "Agent Bravo"], 'roles': [0 1]}, 1)
@@ -95,8 +109,13 @@ def remove_from_game(game_data, from_phone_number):
 
 
 def start_game(game_data):
-    game_data['roles'] = functions.setupGameState(len(game_data['numbers']))
-
+    n = len(game_data['numbers'])
+    game_data['roles'] += functions.setupGameState(n)
+    game_data['names'] += functions.nameGenerator(n)
+    functions.send_text(game_data['numbers'],
+        ["If you would like to take the lie detector test then HQ will analyze the results and send them " +
+         "back to those who took the test. But, the results are aggregated among all people who took the test for " +
+         "privacy reasons. Text 'Take' or 'Don't Take'."]*n)
 
 def end_game():
     # session.pop('callers', None)
