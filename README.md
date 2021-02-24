@@ -37,6 +37,11 @@ This starts the virtual environment.
 pip install -r requirements.txt
 ```
 
+## Testing
+```
+pytest
+```
+This runs all functions prefixed by `test_`
 
 ## Contributing
 When you want to push to the repo, follow these steps

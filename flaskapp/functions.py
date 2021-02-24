@@ -41,30 +41,33 @@ def setupGameState(n):
     return roles
 
 
-# creates names from how many are needed
-# num_names = num of players
-def nameGenerator(num_names):
-    list_names = ['Alpha', 'Bravo', 'Charlie', 'Delta', 'Echo',
-                  'Foxtrot', 'Golf', 'Hotel', 'India', 'Juliet',
-                  'Kilo', 'Lima', 'Mike', 'November', 'Oscar', 'Papa',
-                  'Quebec', 'Romeo', 'Sierra', 'Tango', 'Uniform',
-                  'Victor', 'Whiskey', 'Yankee', 'Zulu']
+DEFAULT_NAMES = ('Alpha', 'Bravo', 'Charlie', 'Delta', 'Echo',
+                 'Foxtrot', 'Golf', 'Hotel', 'India', 'Juliet',
+                 'Kilo', 'Lima', 'Mike', 'November', 'Oscar', 'Papa',
+                 'Quebec', 'Romeo', 'Sierra', 'Tango', 'Uniform',
+                 'Victor', 'Whiskey', 'Yankee', 'Zulu')
 
-    return_names = []
-    for i in range(num_names):
-        name = random.choice(list_names)
-        return_names.append("Agent " + name)
-        list_names.remove(name)
 
-    return return_names
+def nameGenerator(names):
+    list_names = list(DEFAULT_NAMES)
+    while len(list_names) > 0:
+        choice = list_names[random.randint(0, len(list_names) - 1)]
+        if choice not in names:
+            return choice
+        list_names.remove(choice)
+    raise AssertionError("All names used up")
 
 
 # send any text to n number of numbers
 def send_text(numbers, texts):
+    pass
+    """
     # Find these values at https://twilio.com/user/account
     # To set up environmental variables, see http://twil.io/secure
-    account_sid = ""
-    auth_token = ""
+    # TODO NICK: We need to put these in environment variables and then access them so that
+    # Twilio doesn't reset them
+    account_sid = os.environ.get(ACCOUNT_SID)
+    auth_token = os.environ.get(AUTH_TOKEN)
 
     client = Client(account_sid, auth_token)
     if isinstance(numbers, str):
@@ -76,6 +79,7 @@ def send_text(numbers, texts):
             to=number,
             from_="+17203998395",
             body=text)
+    """
 
 
 # adds persons choice to press button, checks if everyone has entered

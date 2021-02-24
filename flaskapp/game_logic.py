@@ -1,27 +1,21 @@
-import functions
 # import functions
-import random
+from flaskapp import functions
 
 NO_GAME_MESSAGE = "You are not currently playing a game of Sleeper Agent! " \
-                  "Text \"Begin enlisting name_no_spaces \" without quotes to start"
+                  "Text \"Begin enlisting your_name_no_spaces \" without quotes to start"
 IN_MISSION = "Wait for the person who started the mission to text 'Start mission' or exit by texting 'Abort'"
-
-
-def get_game_id(data, texter_number):
-    """
-    >>> get_game_id({'id1':{ 'numbers': ['#1', '#2']},'id2': { 'numbers': ["#3", "#4"]}}, '#1')
-    'id1'
-    >>> get_game_id({'id1':{ 'numbers': ['#1', '#2']},'id2': { 'numbers': ["#3", "#4"]}}, '#4')
-    'id2'
-    >>> get_game_id({'id1':{ 'numbers': ['#1', '#2']},'id2': { 'numbers': ["#3", "#4"]}}, '#5')
-
-    """
-    for game_id in data:
-        for phone_number in data[game_id]['numbers']:
-            if phone_number == texter_number:
-                return game_id
-    return None
-
+BEGIN_ENLIST_ST = "Began enlisting as "
+BEGIN_ENLIST_MID = " ! Tell others to join by texting 'enlist "
+BEGIN_ENLIST_END = " their_name_no_spaces' to this number. Start the mission by texting 'Start Mission'"
+NO_GAME_ID = "Please enter the game id: text 'enlist game_id name_no_spaces'"
+ABORT_MSG = "You have left the mission."
+INVALID_COMMAND_PRE_MISSION = "You are in a mission right now. Only the commands " \
+                              "Start mission` and `Abort` are allowed."
+MISSION_START = "You have started the mission"
+LIE_DETECTOR_DESC = "If you would like to take the lie detector test then HQ will analyze the results " \
+                    "and send them back to those who took the test. But, the results are aggregated among " \
+                    "all people who took the test for privacy reasons. Text 'Take' or 'Don't Take'."
+TOO_FEW_PLAYERS = "You cannot start the mission, you need at least 3 players."
 
 def determine_response(data, from_number, body):
     """
@@ -32,35 +26,51 @@ def determine_response(data, from_number, body):
     """
     game_id = get_game_id(data, from_number)
     if game_id is None:
-        print(data)
         # Not currently in a game
         if ' '.join(body.split(" ")[:2]) == "begin enlisting":
-            game_id = str(random.randint(0, 10000))
-            data[game_id] = {'numbers': [from_number], 'names': [body.split(" ")[2]]}
-            return "Began Enlisting for " + game_id + ". Tell others to join by texting 'enlist name_no_spaces " \
-                   + game_id + "' to this number without quotes. Start the mission by texting 'Start Mission'"
+            game_id = next_id(data)
+            try:
+                name = body.split(" ")[2]
+            except IndexError:
+                name = functions.nameGenerator([])
+            data[game_id] = {'numbers': [from_number], 'names': [name]}
+            return BEGIN_ENLIST_ST + name + BEGIN_ENLIST_MID + str(game_id) + BEGIN_ENLIST_END
         elif ' '.join(body.split(" ")[:1]) == "enlist":
-            name = body.split(" ")[1]
-            game_id = ''.join(body.split(" ")[2:])
-            if name in data[game_id]['names']:
-                return "That name is taken"
+            try:
+                game_id = body.split(" ")[1]
+            except IndexError:
+                return NO_GAME_ID
+            if game_id not in data:
+                return "This game id was not found"
+            game_data = data[game_id]
+            try:
+                name = body.split(" ")[2]
+                if name in game_data['names']:
+                    return "That name is taken"
+            except IndexError:
+                name = functions.nameGenerator(game_data['names'])
+            game_data['names'].append(name)
             if game_id in data:
-                add_to_game(data[game_id], from_number)
+                add_to_game(game_data, from_number)
                 return "Successfully joined mission " + game_id + " as " + name
-            else:
-                return "This game id was not found."
         else:
             return NO_GAME_MESSAGE
-    # Setting up a game
-    if ' '.join(body.split(" ")[:2]) == "enlist me" or body == 'begin enlisting':
-        return "You are already enlisted in mission " + game_id + ". " + IN_MISSION
-    elif body == 'start mission':
-        start_game(data[game_id])
-    elif body == 'abort':
-        remove_from_game(data[game_id], from_number)
-        return "You have left the mission."
-
     game_data = data[game_id]
+    # Setting up a game
+    if body == 'start mission':
+        if len(game_data['numbers']) >= 3:
+            start_game(game_data)
+            return MISSION_START
+        else:
+            return TOO_FEW_PLAYERS
+    elif body == 'abort':
+        remove_from_game(game_data, from_number)
+        if len(game_data['names']) == 0:
+            del data[game_id]
+        return ABORT_MSG
+    elif 'phase' not in game_data:
+        return INVALID_COMMAND_PRE_MISSION
+
     phase = game_data['phase']
 
     if phase == 0:
@@ -73,7 +83,6 @@ def determine_response(data, from_number, body):
             else:
                 return "Submitted"
         else:
-            functions.send_text()
             return "Please type in 'take' or 'don't take'."
 
     player_id = game_data["numbers"].index(from_number)
@@ -150,6 +159,29 @@ def determine_response(data, from_number, body):
     return None
 
 
+def get_game_id(data, texter_number):
+    """
+    >>> get_game_id({'id1':{ 'numbers': ['#1', '#2']},'id2': { 'numbers': ["#3", "#4"]}}, '#1')
+    'id1'
+    >>> get_game_id({'id1':{ 'numbers': ['#1', '#2']},'id2': { 'numbers': ["#3", "#4"]}}, '#4')
+    'id2'
+    >>> get_game_id({'id1':{ 'numbers': ['#1', '#2']},'id2': { 'numbers': ["#3", "#4"]}}, '#5')
+
+    """
+    for game_id in data:
+        for phone_number in data[game_id]['numbers']:
+            if phone_number == texter_number:
+                return game_id
+    return None
+
+
+def next_id(data):
+    id = len(data)
+    while str(id) in data:
+        id += 1
+    return str(id)
+
+
 def add_to_game(game_data, from_number):
     """
     Add a player to the game
@@ -177,23 +209,12 @@ def remove_from_game(game_data, from_phone_number):
 
 
 def start_game(game_data):
-    """
-    >>> start_game({'numbers': ['#1', '#2', '#3']})
-    asd
-    """
-    game_data["total_choices"] = {}
-
     n = len(game_data['numbers'])
     game_data['roles'] = functions.setupGameState(n)
-    game_data['names'] = functions.nameGenerator(n)
     game_data['phase'] = 0
     game_data['button_presses'] = {}
-    functions.send_text(game_data['numbers'],
-                        [
-                            "If you would like to take the lie detector test then HQ will analyze the results and send them " +
-                            "back to those who took the test. But, the results are aggregated among all people who took the test for " +
-                            "privacy reasons. Text 'Take' or 'Don't Take'."] * n)
-
+    game_data["total_choices"] = {}
+    functions.send_text(game_data['numbers'], [LIE_DETECTOR_DESC] * n)
 
 def end_game():
     pass
