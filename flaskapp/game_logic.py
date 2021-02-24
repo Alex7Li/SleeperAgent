@@ -3,7 +3,7 @@ import functions
 import random
 
 NO_GAME_MESSAGE = "You are not currently playing a game of Sleeper Agent! " \
-                  "Text \"Begin enlisting\" without quotes to start"
+                  "Text \"Begin enlisting name_no_spaces \" without quotes to start"
 IN_MISSION = "Wait for the person who started the mission to text 'Start mission' or exit by texting 'Abort'"
 
 
@@ -34,17 +34,19 @@ def determine_response(data, from_number, body):
     if game_id is None:
         print(data)
         # Not currently in a game
-        if body == "begin enlisting":
-            game_id = str(random.randint(0, 100000))
-            data[game_id] = {'numbers': [from_number]}
-            return "Began Enlisting for " + game_id + ". Tell others to join by texting 'enlist me " \
+        if ' '.join(body.split(" ")[:2]) == "begin enlisting":
+            game_id = str(random.randint(0, 10000))
+            data[game_id] = {'numbers': [from_number], 'names': [body.split(" ")[2]]}
+            return "Began Enlisting for " + game_id + ". Tell others to join by texting 'enlist name_no_spaces " \
                    + game_id + "' to this number without quotes. Start the mission by texting 'Start Mission'"
-        elif ' '.join(body.split(" ")[:2]) == "enlist me":
+        elif ' '.join(body.split(" ")[:1]) == "enlist":
+            name = body.split(" ")[1]
             game_id = ''.join(body.split(" ")[2:])
-            print(data)
+            if name in data[game_id]['names']:
+                return "That name is taken"
             if game_id in data:
                 add_to_game(data[game_id], from_number)
-                return "Successfully joined mission " + game_id
+                return "Successfully joined mission " + game_id + " as " + name
             else:
                 return "This game id was not found."
         else:
@@ -73,14 +75,41 @@ def determine_response(data, from_number, body):
         else:
             functions.send_text()
             return "Please type in 'take' or 'don't take'."
+
+    player_id = game_data["numbers"].index(from_number)
+
     if phase == 1 and body == 'next phase':
         functions.espionage(game_data['numbers'], game_data['roles'])
         game_data['phase'] = 2
         return None
 
-    player_id = game_data["numbers"].index(from_number)
+    # phase 3: mission
+    if phase == 2 and from_number == game_data['numbers'][0]:
+        # get the mission list
+        mission_list = body
+        mission_list = mission_list.replace(",", "")
+        mission_list = mission_list.replace(";", "")
+        mission_list = mission_list.replace("/", "")
+        mission_list = mission_list.split()
+        game_data['mission_list'] = mission_list
+        # TODO be more flexible with inputs
+        mission_names = ' '.join([str(elem) for elem in mission_list])
+        functions.send_text(game_data["numbers"], ["Possible Agents:" for i in range(len(game_data["numbers"]))])
+        functions.send_text(game_data["numbers"], [game_data["names"] for i in range(len(game_data["numbers"]))])
+        game_data['phase'] = 2.25
+        return "Is this the mission you'd like: " + mission_names + "? Respond (Y/N)"
+
+    if phase == 2.25 and from_number == game_data['numbers'][0]:
+        functions.send_text(game_data["numbers"], [game_data["names"] for i in range(len(game_data["numbers"]))])
+        if "y" in body.lower():
+            game_data['phase'] = 3
+            functions.emergency_mission(game_data['roles'], game_data['mission_list'], game_data['names'],
+                                        game_data['numbers'])
+        if "n" in body.lower():
+            game_data['phase'] = 2
+            return "Please try again, send a list of the names you'd like to go on the mission"
     if phase == 3:
-        message = "Now beginning the excecution, submit your vote by Agent Name"
+        message = "Now beginning the execution, submit your vote by Agent Name"
         functions.send_text(game_data["numbers"], [message] * len(game_data["numbers"]))
         game_data['phase'] = 3.5
         return None
@@ -118,33 +147,6 @@ def determine_response(data, from_number, body):
                 results, revote = functions.excecution(role, choice, game_data["total_choices"], game_data["names"],
                                                        game_data["roles"])
         end_game()
-
-    # phase 3: mission
-    if phase == 2 and from_number == game_data['numbers'][0]:
-        # get the mission list
-        mission_list = body
-        mission_list = mission_list.replace(",", "")
-        mission_list = mission_list.replace(";", "")
-        mission_list = mission_list.replace("/", "")
-        mission_list = mission_list.split()
-        game_data['mission_list'] = mission_list
-        # TODO be more flexible with inputs
-        mission_names = ' '.join([str(elem) for elem in mission_list])
-        functions.send_text(game_data["numbers"],["Possible Agents:" for i in range(len(game_data["numbers"]))])
-        functions.send_text(game_data["numbers"],[game_data["names"] for i in range(len(game_data["numbers"]))])
-        game_data['phase'] = 2.25
-        return "Is this the mission you'd like: " + mission_names + "? Respond (Y/N)"
-
-    if phase == 2.25 and from_number == game_data['numbers'][0]:
-        functions.send_text(game_data["numbers"],[game_data["names"] for i in range(len(game_data["numbers"]))])
-        if "y" in body.lower():
-            functions.emergency_mission(game_data['roles'], game_data['mission_list'], game_data['names'])
-            game_data['phase'] = 3
-            functions.emergency_mission(game_data['roles'], game_data['mission_list'], game_data['names'])
-        if "n" in body.lower():
-            game_data['phase'] = 2
-            return "Please try again, send a list of the names you'd like to go on the mission"
-
     return None
 
 
