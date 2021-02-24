@@ -117,26 +117,15 @@ def button(button_presses, numbers, player_id, choice, roles):
 
 # determines if bad person is on emergency mission
 # roles = all roles in game
-# mission_names = all people going on mission
 # names = all names in game
-def emergency_mission(roles, mission_names, names, numbers):
-    # TODO ask alex about a 'set'
-
-    # get the indices of the given names in the set
-    agentIDs = []
-    for i in range(len(mission_names)):
-        for j in range(len(names)):
-            shortName = names[j].lower().replace("agent ", "")
-            if mission_names[i] == shortName:
-                agentIDs.append(j)
-
+def emergency_mission(roles, mission_inds, numbers):
     is_bad_on_mission = False
 
-    for i in range(len(agentIDs)):
-        if roles[agentIDs[i]] == 1:
+    for i in mission_inds:
+        if roles[i] == 1:
             is_bad_on_mission = True
 
-    for i in agentIDs:
+    for i in mission_inds:
         if is_bad_on_mission:
             send_text(numbers[i], "There was a sleeper agent on this mission")
         else:

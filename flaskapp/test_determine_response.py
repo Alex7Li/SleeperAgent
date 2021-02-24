@@ -1,6 +1,7 @@
 from flaskapp.game_logic import determine_response, \
     BEGIN_ENLIST_ST, BEGIN_ENLIST_MID, BEGIN_ENLIST_END, INVALID_COMMAND_PRE_MISSION, ABORT_MSG, NO_GAME_MESSAGE, \
-    MISSION_START, TOO_FEW_PLAYERS, INVALID_LIE_DETECTOR_INPUT, LIE_DETECTOR_OVER, ESPIONAGE_END
+    MISSION_START, TOO_FEW_PLAYERS, INVALID_LIE_DETECTOR_INPUT, LIE_DETECTOR_OVER, ESPIONAGE_END, MISSION_PHASE_END, \
+    MISSION_RE_ENTER
 import re
 
 
@@ -162,7 +163,63 @@ def test_espionage():
     assert determine_response(data, '1', 'next phase') == ESPIONAGE_END + "['A', 'B', 'C']"
     assert data == {'0': {'numbers': ['1', '2', '3'], 'names': ['A', 'B', 'C'], 'phase': 2, 'roles': [0, 0, 1]}}
 
+
 # MISSION TEST
 
-# EXECUTION TEST
+def test_mission():
+    data = {'0': {'numbers': ['1', '2', '3'], 'names': ['A', 'B', 'C'], 'phase': 2, 'roles': [0, 0, 1]}}
+    assert determine_response(data, '1',
+                              'A,    B') == "Is this the mission you'd like: ['Agent A', 'Agent B']? Respond (Y/N)"
+    assert determine_response(data, '1', 'no') == MISSION_RE_ENTER
+    assert data == {'0': {'numbers': ['1', '2', '3'], 'names': ['A', 'B', 'C'], 'phase': 2, 'roles': [0, 0, 1],
+                          'mission_list': [0, 1]}}
+    assert determine_response(data, '1',
+                              'C,    B') == "Is this the mission you'd like: ['Agent B', 'Agent C']? Respond (Y/N)"
+    assert determine_response(data, '1', 'yes') == MISSION_PHASE_END
+    assert data == {'0': {'numbers': ['1', '2', '3'], 'names': ['A', 'B', 'C'], 'phase': 3, 'roles': [0, 0, 1],
+                          'mission_list': [1, 2]}}
 
+
+def test_mission_wrong_number():
+    data = {'0': {'numbers': ['1', '2', '3'], 'names': ['A', 'B', 'C'], 'phase': 2, 'roles': [0, 0, 1]}}
+    assert determine_response(data, '1',
+                              'A,    B, C') == "Expected 2 agent names, got 3"
+    assert data == {'0': {'numbers': ['1', '2', '3'], 'names': ['A', 'B', 'C'], 'phase': 2, 'roles': [0, 0, 1],
+                          'mission_list': [0, 1, 2]}}
+    assert determine_response(data, '1',
+                              'A, A') == "Expected 2 agent names, got 1"
+    assert data == {'0': {'numbers': ['1', '2', '3'], 'names': ['A', 'B', 'C'], 'phase': 2, 'roles': [0, 0, 1],
+                          'mission_list': [0]}}
+    assert determine_response(data, '1',
+                              'Crab, Donkey') == "One of the names ['Crab', 'Donkey'] was not the name of an agent"
+    assert data == {'0': {'numbers': ['1', '2', '3'], 'names': ['A', 'B', 'C'], 'phase': 2, 'roles': [0, 0, 1],
+                          'mission_list': [0]}}
+
+
+def test_mission_4_players():
+    data = {'0': {'numbers': ['1', '2', '3', '4'], 'names': ['snotbrat', 'rick-ter', 'horsey', "donkey"], 'phase': 2,
+                  'roles': [0, 0, 1, 0]}}
+    assert determine_response(data, '1', 'snotbrat,    donkey') == \
+           "Is this the mission you'd like: ['Agent snotbrat', 'Agent donkey']? Respond (Y/N)"
+    assert data == {
+        '0': {'numbers': ['1', '2', '3', '4'], 'names': ['snotbrat', 'rick-ter', 'horsey', "donkey"], 'phase': 2.5,
+              'roles': [0, 0, 1, 0], 'mission_list': [0, 3]}}
+    assert determine_response(data, '1', 'yes') == MISSION_PHASE_END
+
+
+def test_mission_5_players():
+    data = {
+        '0': {'numbers': ['1', '2', '3', '4', '5'], 'names': ['cat_nose', 'snotbrat', 'rick_ter', 'horsey', "donkey"], 'phase': 2,
+              'roles': [0, 0, 1, 0, 0]}}
+    assert determine_response(data, '1',
+                              'cat_nose. rick_ter, donkey') == "Is this the mission you'd like: ['Agent cat_nose', 'Agent rick_ter', 'Agent donkey']? Respond (Y/N)"
+    assert data == {
+        '0': {'numbers': ['1', '2', '3', '4', '5'], 'names': ['cat_nose', 'snotbrat', 'rick_ter', 'horsey', "donkey"],
+              'phase': 2.5,
+              'roles': [0, 0, 1, 0, 0], 'mission_list': [0, 2, 4]}}
+    assert determine_response(data, '1', 'yes') == MISSION_PHASE_END
+    assert data == {
+        '0': {'numbers': ['1', '2', '3', '4', '5'], 'names': ['cat_nose', 'snotbrat', 'rick_ter', 'horsey', "donkey"], 'phase': 3,
+              'roles': [0, 0, 1, 0, 0], 'mission_list': [0, 2, 4]}}
+
+# EXECUTION TEST
