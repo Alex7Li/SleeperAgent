@@ -1,7 +1,6 @@
 from flaskapp.game_logic import determine_response, \
-    BEGIN_ENLIST_ST, BEGIN_ENLIST_MID, BEGIN_ENLIST_END, \
-    IN_MISSION, INVALID_COMMAND_PRE_MISSION, ABORT_MSG, NO_GAME_MESSAGE, \
-    MISSION_START, TOO_FEW_PLAYERS
+    BEGIN_ENLIST_ST, BEGIN_ENLIST_MID, BEGIN_ENLIST_END, INVALID_COMMAND_PRE_MISSION, ABORT_MSG, NO_GAME_MESSAGE, \
+    MISSION_START, TOO_FEW_PLAYERS, INVALID_LIE_DETECTOR_INPUT, LIE_DETECTOR_OVER, ESPIONAGE_END
 import re
 
 
@@ -102,7 +101,7 @@ def test_start_mission_3_player():
     re.match(MISSION_START, response)
     assert len(data.items()) == 1
     assert {'numbers': ['1', '2', '3'], 'names': ['A', 'B', 'C'], 'phase': 0,
-            'button_presses': {}, 'total_choices': {}
+            'button_presses': [None, None, None], 'execution_choices': [{}, {}, {}]
             }.items() <= data['0'].items()
     assert len(data['0']['roles']) == 3
     assert sum(data['0']['roles']) == 1
@@ -114,16 +113,56 @@ def test_start_mission_4_player():
     re.match(MISSION_START, response)
     assert len(data.items()) == 1
     assert {'numbers': ['1', '2', '3', '4'], 'names': ['A', 'B', 'C', 'D'], 'phase': 0,
-            'button_presses': {}, 'total_choices': {}
+            'button_presses': [None, None, None, None], 'execution_choices': [{}, {}, {}, {}]
             }.items() <= data['0'].items()
     assert len(data['0']['roles']) == 4
     assert sum(data['0']['roles']) == 1
 
 
-# BUTTON
+# LIE DETECTOR TEST
 
-def push_button():
+def test_lie_no_problems():
     data = {'0': {'numbers': ['1', '2', '3'], 'names': ['A', 'B', 'C'], 'phase': 0,
-            'button_presses': {}, 'total_choices': {}, 'roles': [0, 0, 1]
-            }}
-    pass
+                  'button_presses': [None, None, None], 'roles': [0, 0, 1]
+                  }}
+    assert determine_response(data, '1', 'take') == 'Submitted'
+    assert determine_response(data, '2', 'take') == 'Submitted'
+    assert determine_response(data, '3', "don't take") is LIE_DETECTOR_OVER
+
+    assert data == {'0': {'numbers': ['1', '2', '3'], 'names': ['A', 'B', 'C'], 'phase': 1,
+                          'button_presses': ['take', 'take', "don't take"], 'roles': [0, 0, 1]
+                          }}
+
+
+def test_lie_bad_input():
+    data = {'0': {'numbers': ['1', '2', '3'], 'names': ['A', 'B', 'C'], 'phase': 0,
+                  'button_presses': [None, 'take', None], 'roles': [0, 0, 1]
+                  }}
+    assert determine_response(data, '1', 'cowabunga') == INVALID_LIE_DETECTOR_INPUT
+
+
+def test_lie_change_decision():
+    data = {'0': {'numbers': ['1', '2', '3'], 'names': ['A', 'B', 'C'], 'phase': 0,
+                  'button_presses': [None, 'take', None], 'roles': [0, 0, 1]
+                  }}
+    assert determine_response(data, '1', 'take') == 'Submitted'
+    assert determine_response(data, '2', 'take') == 'Submitted'
+    assert determine_response(data, '1', "don't take") == 'Submitted'
+    assert determine_response(data, '3', "don't take") is LIE_DETECTOR_OVER
+
+    assert data == {'0': {'numbers': ['1', '2', '3'], 'names': ['A', 'B', 'C'], 'phase': 1,
+                          'button_presses': ["don't take", 'take', "don't take"], 'roles': [0, 0, 1]
+                          }}
+
+
+# ESPIONAGE TEST
+
+def test_espionage():
+    data = {'0': {'numbers': ['1', '2', '3'], 'names': ['A', 'B', 'C'], 'phase': 1, 'roles': [0, 0, 1]}}
+    assert determine_response(data, '1', 'next phase') == ESPIONAGE_END + "['A', 'B', 'C']"
+    assert data == {'0': {'numbers': ['1', '2', '3'], 'names': ['A', 'B', 'C'], 'phase': 2, 'roles': [0, 0, 1]}}
+
+# MISSION TEST
+
+# EXECUTION TEST
+

@@ -84,28 +84,26 @@ def send_text(numbers, texts):
 
 # adds persons choice to press button, checks if everyone has entered
 # button_presses = everyone presses so far, global var
-# names = all names in game
-# name = name of person submitted
 # choice = choice of person submitted
 # roles = all roles in game
-def button(button_presses, numbers, number, choice, roles):
-    button_presses[number] = choice
+def button(button_presses, numbers, player_id, choice, roles):
+    button_presses[player_id] = choice
 
-    if len(button_presses) != len(numbers):
+    if None in button_presses:
         return False
     bad = roles.index(1)
 
-    said_yes = [i for i in button_presses if button_presses[i].lower().replace("'", "") == "take"]
+    said_yes = [i for i in range(len(button_presses)) if button_presses[i] == "take"]
 
     # sends text based on everyone's choices and if bad is in pressed
-    for n in button_presses:
-        if button_presses[n].lower().replace("'", "") == "take" and numbers[bad] in said_yes:
-            send_text(n, "There is a traitor amongst you")
+    for n in range(len(button_presses)):
+        if button_presses[n] == "take" and numbers[bad] in said_yes:
+            send_text(n, "There is a traitor amongst those who pushed the button")
             send_text(n, "When you're ready to move on, tell the leader to send next phase")
-        elif button_presses[n].lower().replace("'", "") == "take" and numbers[bad] not in said_yes:
+        elif button_presses[n] == "take" and numbers[bad] not in said_yes:
             send_text(n, "All clear Agent, no one was corrupt")
             send_text(n, "When you're ready to move on, tell the leader to send next phase")
-        elif button_presses[n].lower().replace("'", "") == "don't take":
+        elif button_presses[n] == "don't take":
             send_text(n, "You've chosen to sit out")
             send_text(n, "When you're ready to move on, tell the leader to send next phase")
     return True
@@ -146,33 +144,27 @@ def emergency_mission(roles, mission_names, names, numbers):
 
 
 # last step, choose someone
-# role = role of person who submitted
-# choice = their choice
-# name = their name
-# total_choices = global var of everyone choices
-# all names in game
-# all roles in game
-def excecution(choice, name, total_choices, names, roles):
+def excecution(choice, name, execution_choices, names, roles):
     try:
-        total_choices[choice].append(name)
+        execution_choices[choice].append(name)
     except:
         for n in names:
-            total_choices[n] = []
-        total_choices[choice] = [name]
+            execution_choices[n] = []
+        execution_choices[choice] = [name]
 
     # if all names are in it calculates the result
     summer = 0
-    for s in total_choices:
-        summer += len(total_choices[s])
+    for s in execution_choices:
+        summer += len(execution_choices[s])
 
     result = None
     revote = False
     if summer == len(names):
-        result, revote = determine_execution(total_choices, names, roles)
+        result, revote = determine_execution(execution_choices, names, roles)
     return result, revote
 
 
-def determine_execution(total_choices, names, roles):
+def determine_execution(execution_choices, names, roles):
     """
     >>> determine_execution({'a1':['a2','a3'], 'a2':['a1'], 'a3':[]}, ['a1', 'a2', 'a3'], [1, 0, 0])
     (True, False)
@@ -185,13 +177,13 @@ def determine_execution(total_choices, names, roles):
     revote = False
     bad = roles.index(1)
     # if bad chose themselves they win
-    if names[bad] in total_choices[names[bad]]:
+    if names[bad] in execution_choices[names[bad]]:
         result = False
     # if x num chose bad, good win
-    elif len(total_choices[names[bad]]) >= (len(names) - 1) // 2:
+    elif len(execution_choices[names[bad]]) >= (len(names) - 1) // 2:
         result = True
     else:
         revote = True
         for n in names:
-            total_choices[n] = []
+            execution_choices[n] = []
     return result, revote

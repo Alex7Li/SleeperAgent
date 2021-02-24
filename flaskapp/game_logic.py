@@ -2,8 +2,7 @@
 from flaskapp import functions
 
 NO_GAME_MESSAGE = "You are not currently playing a game of Sleeper Agent! " \
-                  "Text \"Begin enlisting your_name_no_spaces \" without quotes to start"
-IN_MISSION = "Wait for the person who started the mission to text 'Start mission' or exit by texting 'Abort'"
+                  "Text \"Begin enlisting your_name_no_spaces\" without quotes to start"
 BEGIN_ENLIST_ST = "Began enlisting as "
 BEGIN_ENLIST_MID = " ! Tell others to join by texting 'enlist "
 BEGIN_ENLIST_END = " their_name_no_spaces' to this number. Start the mission by texting 'Start Mission'"
@@ -16,13 +15,25 @@ LIE_DETECTOR_DESC = "If you would like to take the lie detector test then HQ wil
                     "and send them back to those who took the test. But, the results are aggregated among " \
                     "all people who took the test for privacy reasons. Text 'Take' or 'Don't Take'."
 TOO_FEW_PLAYERS = "You cannot start the mission, you need at least 3 players."
+SPY_LOSE = "Sorry Comrad, You've been busted"
+AGENT_WIN = "Congrats Agents, You caught 'em"
+SPY_WIN = "Congrats Comrad, You know too much"
+AGENT_LOSE = "Agents Nooo, The sleeper has gotten away"
+INVALID_LIE_DETECTOR_INPUT = "Please type in 'take' or 'don't take'"
+LIE_DETECTOR_OVER = "The lie detector test has concluded. HQ has developed a new test that will tell you" \
+                    "everyone if the person to their right is bad. However, they forgot which way was right, so" \
+                    "it might be everyone's left. Text 'next phase' to get the results of espionage"
+INVALID_ABORT_TIME = "You can't leave while the game is in progress."
+GAME_OVER = "The game has ended. To leave the room, text `abort`. To play again with the same players," \
+            "text `start mission`. To add new players, have them text `enlist "
+ESPIONAGE_END = "Espionage has concluded. HQ has a one final test. Choose half the players rounded up " \
+                "to go on a mission, and text their names `name1 name2 name3`. Those players will go on a " \
+                "mission and learn if the sleeper is amongst them. The players in the game are: "
 
 def determine_response(data, from_number, body):
     """
     Determine how to respond to a given text message,
     or None for no response.
-    >>> determine_response({'123':{'numbers': ['#1', '#2', '#3']}}, '#1', 'start mission')
-    "You are already enlisted in mission id1. Wait for the person who started the mission to text 'Start mission' or exit by texting 'Abort'"
     """
     game_id = get_game_id(data, from_number)
     if game_id is None:
@@ -56,6 +67,7 @@ def determine_response(data, from_number, body):
         else:
             return NO_GAME_MESSAGE
     game_data = data[game_id]
+
     # Setting up a game
     if body == 'start mission':
         if len(game_data['numbers']) >= 3:
@@ -64,6 +76,8 @@ def determine_response(data, from_number, body):
         else:
             return TOO_FEW_PLAYERS
     elif body == 'abort':
+        if 'phase' in game_data:
+            return INVALID_ABORT_TIME
         remove_from_game(game_data, from_number)
         if len(game_data['names']) == 0:
             del data[game_id]
@@ -73,26 +87,28 @@ def determine_response(data, from_number, body):
 
     phase = game_data['phase']
 
+    player_id = game_data["numbers"].index(from_number)
+
+    # Lie detector/button
     if phase == 0:
         if body == 'take' or body == "don't take":
             done = functions.button(game_data['button_presses'], game_data['numbers'],
-                                    from_number, body, game_data['roles'])
+                                    player_id, body, game_data['roles'])
             if done:
                 game_data['phase'] = 1
-                return None
+                return LIE_DETECTOR_OVER
             else:
                 return "Submitted"
         else:
-            return "Please type in 'take' or 'don't take'."
+            return INVALID_LIE_DETECTOR_INPUT
 
-    player_id = game_data["numbers"].index(from_number)
-
+    # Espionage
     if phase == 1 and body == 'next phase':
         functions.espionage(game_data['numbers'], game_data['roles'])
         game_data['phase'] = 2
-        return None
+        return ESPIONAGE_END + str(game_data['names'])
 
-    # phase 3: mission
+    # Mission
     if phase == 2 and from_number == game_data['numbers'][0]:
         # get the mission list
         mission_list = body
@@ -117,11 +133,13 @@ def determine_response(data, from_number, body):
         if "n" in body.lower():
             game_data['phase'] = 2
             return "Please try again, send a list of the names you'd like to go on the mission"
+
     if phase == 3:
         message = "Now beginning the execution, submit your vote by Agent Name"
         functions.send_text(game_data["numbers"], [message] * len(game_data["numbers"]))
         game_data['phase'] = 3.5
         return None
+
     if phase == 3.5:
         role = game_data['roles'][player_id]
         choice = body  # expects a name
@@ -141,21 +159,19 @@ def determine_response(data, from_number, body):
                                 zip(num_ind, game_data["numbers"], range(game_data["numbers"])) if num_ind != ind]
 
                 if results:
-                    message = "Sorry Comrad, You've been busted"
+                    message = SPY_LOSE
                     functions.send_text(bad_number, message)
-
-                    message = "Congrats Agents, You caught 'em"
+                    message = AGENT_WIN
                     functions.send_text(good_numbers, [message for m in range(len(good_numbers))])
                 else:
-                    message = "Congrats Comrad, You know too much"
+                    message = SPY_WIN
                     functions.send_text(bad_number, message)
-
-                    message = "Agents Nooo, The sleeper has gotten away"
+                    message = AGENT_LOSE
                     functions.send_text(good_numbers, [message for m in range(len(good_numbers))])
                 phase += 1
                 results, revote = functions.excecution(role, choice, game_data["total_choices"], game_data["names"],
                                                        game_data["roles"])
-        end_game()
+        end_game(data, game_id)
     return None
 
 
@@ -212,9 +228,14 @@ def start_game(game_data):
     n = len(game_data['numbers'])
     game_data['roles'] = functions.setupGameState(n)
     game_data['phase'] = 0
-    game_data['button_presses'] = {}
-    game_data["total_choices"] = {}
+    game_data['button_presses'] = [None for _ in range(n)]
+    game_data["execution_choices"] = [{} for _ in range(n)]
     functions.send_text(game_data['numbers'], [LIE_DETECTOR_DESC] * n)
 
-def end_game():
-    pass
+
+def end_game(data, id):
+    del data[id]['roles']
+    del data[id]['phase']
+    del data[id]['button_presses']
+    del data[id]['execution_choices']
+    functions.send_text(data[id]['numbers'], [GAME_OVER + id + " name_no_spaces`"] * len(data[id]['numbers']))
