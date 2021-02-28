@@ -1,5 +1,7 @@
-from flaskapp.game_logic import determine_response, BEGIN_ENLIST_ST, BEGIN_ENLIST_MID, BEGIN_ENLIST_END, ABORT_MSG
 import re
+
+from flaskapp.game_logic import determine_response, BEGIN_ENLIST_ST,\
+    BEGIN_ENLIST_MID, BEGIN_ENLIST_END, ABORT_MSG, MISSION_START
 
 
 def test_3_player():
@@ -12,9 +14,13 @@ def test_3_player():
     response = determine_response(data, '#3', 'enlist 0 Lav')
     assert re.match("Successfully joined mission 0 as Lav", response)
 
-    # Lav sucks
+    # Lav is a loser and he doesn't wanna play anymore
     response = determine_response(data, '#3', 'abort')
     assert re.match(ABORT_MSG, response)
 
     response = determine_response(data, '#4', 'enlist 0 Nick')
     assert re.match("Successfully joined mission 0 as Nick", response)
+
+    assert determine_response(data, '#1', 'start mission') == MISSION_START
+
+

@@ -1,6 +1,7 @@
-from .game_logic import next_id
+from .game_logic import next_id, remove_from_game
 from .functions import nameGenerator, DEFAULT_NAMES
 import pytest
+
 
 def test_next_id_empty():
     data = {}
@@ -31,3 +32,20 @@ def test_name_gen_all_names():
     cur_names = list(DEFAULT_NAMES)
     with pytest.raises(AssertionError):
         nameGenerator(cur_names)
+
+
+def test_remove_from_game():
+    game_data = {'numbers': ["1", "2"], 'names': ["Agent India", "Agent Bravo"]}
+    assert remove_from_game(game_data, '1') == {'numbers': ["2"], 'names': ["Agent Bravo"]}
+
+
+def test_remove_from_game_last():
+    game_data = {'numbers': ["1"], 'names': ["Agent India"]}
+    assert remove_from_game(game_data, '1') == {'numbers': [], 'names': []}
+
+
+def test_remove_from_game_roles_already_assigned():
+    game_data = {'numbers': ["1", "2"], 'names': ["Agent India", "Agent Bravo"], "roles": [0, 1]}
+    assert remove_from_game(game_data, '1') is None
+    # Its a no op
+    assert game_data == {'numbers': ["1", "2"], 'names': ["Agent India", "Agent Bravo"], "roles": [0, 1]}

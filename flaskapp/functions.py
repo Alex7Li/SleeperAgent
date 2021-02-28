@@ -1,12 +1,15 @@
 import os
+import sys
 from twilio.rest import Client
 import random
 from flask import Flask, request
 from twilio.twiml.messaging_response import MessagingResponse
 
-
 # checks to the left or right
 # roles = all roles in game
+WAS_SLEEPER = "There was a sleeper agent on this mission"
+WAS_NO_SLEEPER = "There was no sleeper agent on this mission"
+DISAGREE_MESSAGE = "Not enough people correctly guessed who the sleeper was, try again"
 
 
 def espionage(roles, numbers):
@@ -36,7 +39,7 @@ def espionage(roles, numbers):
 # n = number of players
 def setupGameState(n):
     # 0 = good, 1 = bad
-    roles = [0 for i in range(n)]
+    roles = [0 for _ in range(n)]
     roles[random.randint(0, n - 1)] = 1
     return roles
 
@@ -58,28 +61,32 @@ def nameGenerator(names):
     raise AssertionError("All names used up")
 
 
+TESTING = True
+
+
 # send any text to n number of numbers
 def send_text(numbers, texts):
-    pass
-    """
     # Find these values at https://twilio.com/user/account
     # To set up environmental variables, see http://twil.io/secure
     # TODO NICK: We need to put these in environment variables and then access them so that
     # Twilio doesn't reset them
-    account_sid = os.environ.get(ACCOUNT_SID)
-    auth_token = os.environ.get(AUTH_TOKEN)
-
-    client = Client(account_sid, auth_token)
     if isinstance(numbers, str):
         numbers = [numbers]
     if isinstance(texts, str):
         texts = [texts]
-    for number, text in zip(numbers, texts):
-        client.messages.create(
-            to=number,
-            from_="+17203998395",
-            body=text)
-    """
+    if TESTING:
+        for number, text in sorted(zip(numbers, texts)):
+            print(number, text)  # Print the texts to console, tests can check that the right messages are sent.
+    else:
+        account_sid = os.environ.get("ACCOUNT_SID")
+        auth_token = os.environ.get("AUTH_TOKEN")
+        client = Client(account_sid, auth_token)
+
+        for number, text in zip(numbers, texts):
+            client.messages.create(
+                to=number,
+                from_="+17203998395",
+                body=text)
 
 
 # adds persons choice to press button, checks if everyone has entered
@@ -97,15 +104,16 @@ def button(button_presses, numbers, player_id, choice, roles):
 
     # sends text based on everyone's choices and if bad is in pressed
     for n in range(len(button_presses)):
+        recv = numbers[n]
         if button_presses[n] == "take" and numbers[bad] in said_yes:
-            send_text(n, "There is a traitor amongst those who pushed the button")
-            send_text(n, "When you're ready to move on, tell the leader to send next phase")
+            send_text(recv, "There is a traitor amongst those who pushed the button")
+            send_text(recv, "When you're ready to move on, tell the leader to send next phase")
         elif button_presses[n] == "take" and numbers[bad] not in said_yes:
-            send_text(n, "All clear Agent, no one was corrupt")
-            send_text(n, "When you're ready to move on, tell the leader to send next phase")
+            send_text(recv, "All clear Agent, no one was corrupt")
+            send_text(recv, "When you're ready to move on, tell the leader to send next phase")
         elif button_presses[n] == "don't take":
-            send_text(n, "You've chosen to sit out")
-            send_text(n, "When you're ready to move on, tell the leader to send next phase")
+            send_text(recv, "You've chosen to sit out")
+            send_text(recv, "When you're ready to move on, tell the leader to send next phase")
     return True
 
 
@@ -127,52 +135,42 @@ def emergency_mission(roles, mission_inds, numbers):
 
     for i in mission_inds:
         if is_bad_on_mission:
-            send_text(numbers[i], "There was a sleeper agent on this mission")
+            send_text(numbers[i], WAS_SLEEPER)
         else:
-            send_text(numbers[i], "There was no sleeper agent on this mission")
+            send_text(numbers[i], WAS_NO_SLEEPER)
 
 
 # last step, choose someone
-def excecution(choice, name, execution_choices, names, roles):
-    try:
-        execution_choices[choice].append(name)
-    except:
-        for n in names:
-            execution_choices[n] = []
-        execution_choices[choice] = [name]
+def excecution(voter_id, votee_id, execution_choices, roles, numbers):
+    execution_choices[voter_id] = votee_id
 
     # if all names are in it calculates the result
-    summer = 0
-    for s in execution_choices:
-        summer += len(execution_choices[s])
+    agent_win = None
+    if None not in execution_choices:
+        agent_win = determine_execution(execution_choices, roles)
+        if agent_win is None:
+            message = DISAGREE_MESSAGE
+            send_text(numbers, [message for _ in range(len(numbers))])
+            for i in range(len(roles)):
+                execution_choices[i] = None
+    return agent_win
 
-    result = None
-    revote = False
-    if summer == len(names):
-        result, revote = determine_execution(execution_choices, names, roles)
-    return result, revote
 
-
-def determine_execution(execution_choices, names, roles):
+def determine_execution(execution_choices, roles):
     """
-    >>> determine_execution({'a1':['a2','a3'], 'a2':['a1'], 'a3':[]}, ['a1', 'a2', 'a3'], [1, 0, 0])
-    (True, False)
-    >>> determine_execution({'a1':['a1','a3'], 'a2':['a2'], 'a3':[]}, ['a1', 'a2', 'a3'], [1, 0, 0])
-    (False, False)
-    >>> determine_execution({'a1':[], 'a2':['a1', 'a2', 'a3']}, ['a1', 'a2', 'a3'], [1, 0, 0])
-    (None, True)
+    >>> determine_execution([1, 0, 0], [1, 0, 0])
+    True
+    >>> determine_execution([0,0,0], [1, 0, 0])
+    False
+    >>> determine_execution([1,1,1], [1, 0, 0])
+    None
     """
-    result = None
-    revote = False
+    agent_win = None
     bad = roles.index(1)
-    # if bad chose themselves they win
-    if names[bad] in execution_choices[names[bad]]:
-        result = False
-    # if x num chose bad, good win
-    elif len(execution_choices[names[bad]]) >= (len(names) - 1) // 2:
-        result = True
-    else:
-        revote = True
-        for n in names:
-            execution_choices[n] = []
-    return result, revote
+    # If bad chose themselves they win
+    if execution_choices[bad] == bad:
+        agent_win = False
+    # If x num chose bad, good win
+    elif sum(vote == bad for vote in execution_choices) >= (len(execution_choices) - 1) // 2:
+        agent_win = True
+    return agent_win

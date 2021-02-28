@@ -1,8 +1,10 @@
 from flaskapp.game_logic import determine_response, \
     BEGIN_ENLIST_ST, BEGIN_ENLIST_MID, BEGIN_ENLIST_END, INVALID_COMMAND_PRE_MISSION, ABORT_MSG, NO_GAME_MESSAGE, \
-    MISSION_START, TOO_FEW_PLAYERS, INVALID_LIE_DETECTOR_INPUT, LIE_DETECTOR_OVER, ESPIONAGE_END, MISSION_PHASE_END, \
-    MISSION_RE_ENTER
+    MISSION_START, TOO_FEW_PLAYERS, INVALID_LIE_DETECTOR_INPUT, LIE_DETECTOR_OVER, ESPIONAGE_END, \
+    MISSION_RE_ENTER, START_EXECUTION, GAME_OVER, SPY_WIN, SPY_LOSE, AGENT_WIN, AGENT_LOSE
 import re
+
+from flaskapp.functions import WAS_SLEEPER, DISAGREE_MESSAGE
 
 
 # BEGIN ENLISTING
@@ -102,7 +104,7 @@ def test_start_mission_3_player():
     re.match(MISSION_START, response)
     assert len(data.items()) == 1
     assert {'numbers': ['1', '2', '3'], 'names': ['A', 'B', 'C'], 'phase': 0,
-            'button_presses': [None, None, None], 'execution_choices': [{}, {}, {}]
+            'button_presses': [None, None, None], 'execution_choices': [None, None, None]
             }.items() <= data['0'].items()
     assert len(data['0']['roles']) == 3
     assert sum(data['0']['roles']) == 1
@@ -114,7 +116,7 @@ def test_start_mission_4_player():
     re.match(MISSION_START, response)
     assert len(data.items()) == 1
     assert {'numbers': ['1', '2', '3', '4'], 'names': ['A', 'B', 'C', 'D'], 'phase': 0,
-            'button_presses': [None, None, None, None], 'execution_choices': [{}, {}, {}, {}]
+            'button_presses': [None, None, None, None], 'execution_choices': [None] * 4
             }.items() <= data['0'].items()
     assert len(data['0']['roles']) == 4
     assert sum(data['0']['roles']) == 1
@@ -166,16 +168,16 @@ def test_espionage():
 
 # MISSION TEST
 
-def test_mission():
+def test_mission(capsys):
     data = {'0': {'numbers': ['1', '2', '3'], 'names': ['A', 'B', 'C'], 'phase': 2, 'roles': [0, 0, 1]}}
     assert determine_response(data, '1',
-                              'A,    B') == "Is this the mission you'd like: ['Agent A', 'Agent B']? Respond (Y/N)"
+                              "A,    B") == "Is this the mission you'd like: ['Agent A', 'Agent B']? Respond (Y/N)"
     assert determine_response(data, '1', 'no') == MISSION_RE_ENTER
     assert data == {'0': {'numbers': ['1', '2', '3'], 'names': ['A', 'B', 'C'], 'phase': 2, 'roles': [0, 0, 1],
                           'mission_list': [0, 1]}}
     assert determine_response(data, '1',
                               'C,    B') == "Is this the mission you'd like: ['Agent B', 'Agent C']? Respond (Y/N)"
-    assert determine_response(data, '1', 'yes') == MISSION_PHASE_END
+    assert determine_response(data, '1', 'yes') is None
     assert data == {'0': {'numbers': ['1', '2', '3'], 'names': ['A', 'B', 'C'], 'phase': 3, 'roles': [0, 0, 1],
                           'mission_list': [1, 2]}}
 
@@ -204,12 +206,13 @@ def test_mission_4_players():
     assert data == {
         '0': {'numbers': ['1', '2', '3', '4'], 'names': ['snotbrat', 'rick-ter', 'horsey', "donkey"], 'phase': 2.5,
               'roles': [0, 0, 1, 0], 'mission_list': [0, 3]}}
-    assert determine_response(data, '1', 'yes') == MISSION_PHASE_END
+    assert determine_response(data, '1', 'yes') is None
 
 
 def test_mission_5_players():
     data = {
-        '0': {'numbers': ['1', '2', '3', '4', '5'], 'names': ['cat_nose', 'snotbrat', 'rick_ter', 'horsey', "donkey"], 'phase': 2,
+        '0': {'numbers': ['1', '2', '3', '4', '5'], 'names': ['cat_nose', 'snotbrat', 'rick_ter', 'horsey', "donkey"],
+              'phase': 2,
               'roles': [0, 0, 1, 0, 0]}}
     assert determine_response(data, '1',
                               'cat_nose. rick_ter, donkey') == "Is this the mission you'd like: ['Agent cat_nose', 'Agent rick_ter', 'Agent donkey']? Respond (Y/N)"
@@ -217,9 +220,79 @@ def test_mission_5_players():
         '0': {'numbers': ['1', '2', '3', '4', '5'], 'names': ['cat_nose', 'snotbrat', 'rick_ter', 'horsey', "donkey"],
               'phase': 2.5,
               'roles': [0, 0, 1, 0, 0], 'mission_list': [0, 2, 4]}}
-    assert determine_response(data, '1', 'yes') == MISSION_PHASE_END
+    assert determine_response(data, '1', 'yes') is None
     assert data == {
-        '0': {'numbers': ['1', '2', '3', '4', '5'], 'names': ['cat_nose', 'snotbrat', 'rick_ter', 'horsey', "donkey"], 'phase': 3,
+        '0': {'numbers': ['1', '2', '3', '4', '5'], 'names': ['cat_nose', 'snotbrat', 'rick_ter', 'horsey', "donkey"],
+              'phase': 3,
               'roles': [0, 0, 1, 0, 0], 'mission_list': [0, 2, 4]}}
 
+
+def test_messages_sent(capsys):
+    data = {'0': {'numbers': ['1', '2', '3'], 'names': ['A', 'B', 'C'], 'phase': 2, 'roles': [0, 0, 1]}}
+    determine_response(data, '1', "C, B")
+    determine_response(data, '1', 'yes')
+    captured = capsys.readouterr()
+    assert captured.out == "2 " + WAS_SLEEPER + "\n3 " + WAS_SLEEPER + "\n1 " + START_EXECUTION + "\n2 " + START_EXECUTION + "\n3 " + START_EXECUTION + "\n"
+    assert data == {'0': {'numbers': ['1', '2', '3'], 'names': ['A', 'B', 'C'], 'phase': 3, 'roles': [0, 0, 1],
+                          'mission_list': [1, 2]}}
+
+
 # EXECUTION TEST
+
+def test_execution_bad_win(capsys):
+    data = {'0': {'numbers': ['1', '2', '3'], 'names': ['a', 'b', 'c'], 'phase': 3, 'roles': [0, 0, 1],
+                  'execution_choices': [None, None, None], 'button_presses': []}}
+    assert determine_response(data, '1', 'a') == "You voted for Agent a"
+    assert determine_response(data, '2', 'agent a') == "You voted for Agent a"
+    assert determine_response(data, '3', 'c') is None
+    captured = capsys.readouterr()
+    assert captured.out == "1 " + AGENT_LOSE + "\n2 " + AGENT_LOSE + "\n3 " + SPY_WIN + "\n1 " + GAME_OVER + "0 name_no_spaces'\n"
+
+
+def test_execution_good_win(capsys):
+    data = {'0': {'numbers': ['1', '2', '3'], 'names': ['a', 'b', 'c'], 'phase': 3, 'roles': [1, 0, 0],
+                  'execution_choices': [None, None, None], 'button_presses': []}}
+    assert determine_response(data, '1', 'c') == "You voted for Agent c"
+    assert determine_response(data, '2', 'agent a') == "You voted for Agent a"
+    assert determine_response(data, '3', 'b') is None
+    captured = capsys.readouterr()
+    assert captured.out == "1 " + SPY_LOSE + "\n2 " + AGENT_WIN + "\n3 " + AGENT_WIN + "\n1 " + GAME_OVER + "0 name_no_spaces'\n"
+
+
+def test_execution_redo_then_good_win(capsys):
+    data = {'0': {'numbers': ['1', '2', '3'], 'names': ['a', 'b', 'c'], 'phase': 3, 'roles': [1, 0, 0],
+                  'execution_choices': [None, None, None], 'button_presses': []}}
+    assert determine_response(data, '1', 'c') == "You voted for Agent c"
+    assert determine_response(data, '2', 'agent c') == "You voted for Agent c"
+    assert determine_response(data, '3', 'c') == "You voted for Agent c"
+    captured = capsys.readouterr()
+    assert captured.out == "1 " + DISAGREE_MESSAGE + "\n2 " + DISAGREE_MESSAGE + "\n3 " + DISAGREE_MESSAGE + "\n"
+    assert determine_response(data, '1', 'b') == "You voted for Agent b"
+    assert determine_response(data, '2', 'agent b') == "You voted for A" \
+                                                       "gent b"
+    assert determine_response(data, '3', 'a') is None
+    captured = capsys.readouterr()
+    assert captured.out == "1 " + SPY_LOSE + "\n2 " + AGENT_WIN + "\n3 " + AGENT_WIN + "\n1 " + GAME_OVER + "0 name_no_spaces'\n"
+
+
+def test_execution_redo_then_bad_win_4_player(capsys):
+    data = {'0': {'numbers': ['1', '2', '3', '4'], 'names': ['a', 'b', 'c', 'd'], 'phase': 3, 'roles': [1, 0, 0, 0],
+                  'execution_choices': [None, None, None, None], 'button_presses': []}}
+    assert determine_response(data, '1', 'c') == "You voted for Agent c"
+    assert determine_response(data, '2', 'agent d') == "You voted for Agent d"
+    assert determine_response(data, '3', 'b') == "You voted for Agent b"
+    assert data == {'0': {'numbers': ['1', '2', '3', '4'], 'names': ['a', 'b', 'c', 'd'], 'phase': 3,
+                          'roles': [1, 0, 0, 0], 'execution_choices': [2, 3, 1, None], 'button_presses': []}}
+    assert determine_response(data, '4', 'agent d') == "You voted for Agent d"
+    captured = capsys.readouterr()
+    assert captured.out == "1 " + DISAGREE_MESSAGE + "\n2 " + DISAGREE_MESSAGE + "\n3 " + DISAGREE_MESSAGE + "\n4 " + DISAGREE_MESSAGE + "\n"
+    assert data == {'0': {'numbers': ['1', '2', '3', '4'], 'names': ['a', 'b', 'c', 'd'], 'phase': 3,
+                          'roles': [1, 0, 0, 0], 'execution_choices': [None, None, None, None], 'button_presses': []}}
+    assert determine_response(data, '4', 'my vote goes to agent b') == "You voted for Agent b"
+    assert determine_response(data, '1', 'I would like to vote for a') == "You voted for Agent a"
+    assert determine_response(data, '2', 'agent b') == "You voted for Agent b"
+    assert determine_response(data, '3', 'a') is None
+    captured = capsys.readouterr()
+    assert captured.out == "1 " + SPY_WIN + "\n2 " + AGENT_LOSE + "\n3 " + AGENT_LOSE + "\n4 " + AGENT_LOSE + "\n1 " + GAME_OVER + "0 name_no_spaces'\n"
+    assert data == {'0': {'numbers': ['1', '2', '3', '4'], 'names': ['a', 'b', 'c', 'd']}}
+
