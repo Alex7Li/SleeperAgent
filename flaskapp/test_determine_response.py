@@ -4,7 +4,7 @@ from flaskapp.game_logic import determine_response, \
     MISSION_RE_ENTER, START_EXECUTION, GAME_OVER, SPY_WIN, SPY_LOSE, AGENT_WIN, AGENT_LOSE
 import re
 
-from flaskapp.functions import WAS_SLEEPER, DISAGREE_MESSAGE
+from flaskapp.functions import WAS_SLEEPER, WAS_NO_SLEEPER, DISAGREE_MESSAGE, ESP_CLEAR, ESP_DETECTED
 
 
 # BEGIN ENLISTING
@@ -124,13 +124,15 @@ def test_start_mission_4_player():
 
 # LIE DETECTOR TEST
 
-def test_lie_no_problems():
+def test_lie_no_problems(capsys):
     data = {'0': {'numbers': ['1', '2', '3'], 'names': ['A', 'B', 'C'], 'phase': 0,
                   'button_presses': [None, None, None], 'roles': [0, 0, 1]
                   }}
     assert determine_response(data, '1', 'take') == 'Submitted'
     assert determine_response(data, '2', 'take') == 'Submitted'
+    assert capsys.readouterr().out == ""
     assert determine_response(data, '3', "don't take") is LIE_DETECTOR_OVER
+    assert capsys.readouterr().out == "1 All clear Agent, no one was corrupt\n1 When you're ready to move on, tell the leader to send next phase\n2 All clear Agent, no one was corrupt\n2 When you're ready to move on, tell the leader to send next phase\n3 You've chosen to sit out\n3 When you're ready to move on, tell the leader to send next phase\n"
 
     assert data == {'0': {'numbers': ['1', '2', '3'], 'names': ['A', 'B', 'C'], 'phase': 1,
                           'button_presses': ['take', 'take', "don't take"], 'roles': [0, 0, 1]
@@ -160,10 +162,17 @@ def test_lie_change_decision():
 
 # ESPIONAGE TEST
 
-def test_espionage():
-    data = {'0': {'numbers': ['1', '2', '3'], 'names': ['A', 'B', 'C'], 'phase': 1, 'roles': [0, 0, 1]}}
+def test_espionage_clear(capsys):
+    data = {'0': {'numbers': ['1', '2', '3'], 'names': ['A', 'B', 'C'], 'phase': 1, 'roles': [0, 0, 0]}}
     assert determine_response(data, '1', 'next phase') == ESPIONAGE_END + "['A', 'B', 'C']"
-    assert data == {'0': {'numbers': ['1', '2', '3'], 'names': ['A', 'B', 'C'], 'phase': 2, 'roles': [0, 0, 1]}}
+    assert capsys.readouterr().out == "1 " + ESP_CLEAR + "\n2 " + ESP_CLEAR + "\n3 " + ESP_CLEAR + "\n"
+    assert data == {'0': {'numbers': ['1', '2', '3'], 'names': ['A', 'B', 'C'], 'phase': 2, 'roles': [0, 0, 0]}}
+
+
+def test_espionage_spies(capsys):
+    data = {'0': {'numbers': ['1', '2', '3'], 'names': ['A', 'B', 'C'], 'phase': 1, 'roles': [1, 1, 1]}}
+    assert determine_response(data, '1', 'next phase') == ESPIONAGE_END + "['A', 'B', 'C']"
+    assert capsys.readouterr().out == "1 " + ESP_DETECTED + "\n2 " + ESP_DETECTED + "\n3 " + ESP_DETECTED + "\n"
 
 
 # MISSION TEST
@@ -178,8 +187,19 @@ def test_mission(capsys):
     assert determine_response(data, '1',
                               'C,    B') == "Is this the mission you'd like: ['Agent B', 'Agent C']? Respond (Y/N)"
     assert determine_response(data, '1', 'yes') is None
+    assert capsys.readouterr().out == "2 " + WAS_SLEEPER + "\n3 " + WAS_SLEEPER + "\n1 " + START_EXECUTION + "\n2 " + START_EXECUTION + "\n3 " + START_EXECUTION + "\n"
     assert data == {'0': {'numbers': ['1', '2', '3'], 'names': ['A', 'B', 'C'], 'phase': 3, 'roles': [0, 0, 1],
                           'mission_list': [1, 2]}}
+
+
+def test_mission_no_sleeper(capsys):
+    data = {'0': {'numbers': ['1', '2', '3'], 'names': ['A', 'B', 'C'], 'phase': 2, 'roles': [0, 0, 1],
+                  'mission_list': [0, 1]}}
+    determine_response(data, '1', 'B, A')
+    assert determine_response(data, '1', 'yes') is None
+    assert capsys.readouterr().out == "1 " + WAS_NO_SLEEPER + "\n2 " + WAS_NO_SLEEPER + "\n1 " + START_EXECUTION + "\n2 " + START_EXECUTION + "\n3 " + START_EXECUTION + "\n"
+    assert data == {'0': {'numbers': ['1', '2', '3'], 'names': ['A', 'B', 'C'], 'phase': 3, 'roles': [0, 0, 1],
+                          'mission_list': [0, 1]}}
 
 
 def test_mission_wrong_number():
@@ -290,9 +310,8 @@ def test_execution_redo_then_bad_win_4_player(capsys):
                           'roles': [1, 0, 0, 0], 'execution_choices': [None, None, None, None], 'button_presses': []}}
     assert determine_response(data, '4', 'my vote goes to agent b') == "You voted for Agent b"
     assert determine_response(data, '1', 'I would like to vote for a') == "You voted for Agent a"
-    assert determine_response(data, '2', 'agent b') == "You voted for Agent b"
+    assert determine_response(data, '2', 'agent b is evil I just know it') == "You voted for Agent b"
     assert determine_response(data, '3', 'a') is None
     captured = capsys.readouterr()
     assert captured.out == "1 " + SPY_WIN + "\n2 " + AGENT_LOSE + "\n3 " + AGENT_LOSE + "\n4 " + AGENT_LOSE + "\n1 " + GAME_OVER + "0 name_no_spaces'\n"
     assert data == {'0': {'numbers': ['1', '2', '3', '4'], 'names': ['a', 'b', 'c', 'd']}}
-

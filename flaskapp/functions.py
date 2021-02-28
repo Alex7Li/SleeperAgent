@@ -10,28 +10,26 @@ from twilio.twiml.messaging_response import MessagingResponse
 WAS_SLEEPER = "There was a sleeper agent on this mission"
 WAS_NO_SLEEPER = "There was no sleeper agent on this mission"
 DISAGREE_MESSAGE = "Not enough people correctly guessed who the sleeper was, try again"
+ESP_DETECTED = "CODE RED: A spy is to your left or right"
+ESP_CLEAR = "ALL CLEAR: No spies detected"
 
 
-def espionage(roles, numbers):
-    """
-    >>> espionage([0, 1], ['a', 'b'])
-
-    """
+def espionage(numbers, roles):
     texts = []
     n = len(roles)
     right = random.randint(0, 1)
     for c in range(len(roles)):
         if right:
             if roles[(c + 1) % n]:
-                texts.append("CODE RED: Espionage Detected")
+                texts.append(ESP_DETECTED)
             else:
-                texts.append("ALL CLEAR: Espionage NOT Detected")
+                texts.append(ESP_CLEAR)
 
         else:
             if roles[(c - 1) % n]:
-                texts.append("CODE RED: Espionage Detected")
+                texts.append(ESP_DETECTED)
             else:
-                texts.append("ALL CLEAR: Espionage NOT Detected")
+                texts.append(ESP_CLEAR)
     send_text(numbers, texts)
 
 
@@ -141,6 +139,7 @@ def emergency_mission(roles, mission_inds, numbers):
 
 
 # last step, choose someone
+
 def excecution(voter_id, votee_id, execution_choices, roles, numbers):
     execution_choices[voter_id] = votee_id
 
