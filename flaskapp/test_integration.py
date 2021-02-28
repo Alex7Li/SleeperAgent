@@ -22,5 +22,3 @@ def test_3_player():
     assert re.match("Successfully joined mission 0 as Nick", response)
 
     assert determine_response(data, '#1', 'start mission') == MISSION_START
-
-

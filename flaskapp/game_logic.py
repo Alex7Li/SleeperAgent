@@ -1,5 +1,5 @@
-# import functions
-from flaskapp import functions
+import functions
+# from flaskapp import functions
 import re
 
 NO_GAME_MESSAGE = "You are not currently playing a game of Sleeper Agent! " \

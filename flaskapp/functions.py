@@ -59,15 +59,11 @@ def nameGenerator(names):
     raise AssertionError("All names used up")
 
 
-TESTING = True
+TESTING = False
 
 
 # send any text to n number of numbers
 def send_text(numbers, texts):
-    # Find these values at https://twilio.com/user/account
-    # To set up environmental variables, see http://twil.io/secure
-    # TODO NICK: We need to put these in environment variables and then access them so that
-    # Twilio doesn't reset them
     if isinstance(numbers, str):
         numbers = [numbers]
     if isinstance(texts, str):
@@ -76,6 +72,10 @@ def send_text(numbers, texts):
         for number, text in sorted(zip(numbers, texts)):
             print(number, text)  # Print the texts to console, tests can check that the right messages are sent.
     else:
+        # Find these values at https://twilio.com/user/account
+        # To set up environmental variables, see http://twil.io/secure
+        # TODO NICK: We need to put these in environment variables and then access them so that
+        # Twilio doesn't reset them
         account_sid = os.environ.get("ACCOUNT_SID")
         auth_token = os.environ.get("AUTH_TOKEN")
         client = Client(account_sid, auth_token)
